@@ -1,0 +1,14 @@
+<title>ES5 Lexer</title>
+<h1>ES5 Lexer</h1>
+A lexical scanner for EcmaScript 5 that is as correct as one can be
+(given the ambiguity between regular expressions and semicolons)
+and produces a token stream that will be treated as equivalent by
+any valid EcmaScript parser that parses the output.
+
+<p>
+This is meant to efficiently allow token level transformations
+of valid EcmaScript 5 programs from untrusted sources that will have
+same meaning as that assumed by the transformer when parsed by a full
+EcmaScript interpreter.  For this to hold, the output token stream
+must not contain any ambiguity.
+</p>
