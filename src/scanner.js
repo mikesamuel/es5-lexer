@@ -5,40 +5,6 @@
  * @author Mike Samuel <mikesamuel@gmail.com>
  */
 
-var ES5_REGEXP_LITERAL_TOKEN = new RegExp(
-  "^"
-  + "\\/"  // A slash starts a regexp
-  + "(?:"  // which can contain any number of
-    // chars escept charsets, escape-sequences, line-terminators, delimiters
-    + "[^\\\\\\[/\\r\\n\\u2028\\u2029]"
-    // or a charset
-    + "|\\["  // that starts with a '['
-      + "(?:"  // and contains at least one of
-        // chars except charset ends, escape sequences, line terminators
-        + "[^\\]\\\\\\r\\n\\u2028\\u2029]"
-        // or an escape sequence of line continuation
-        + "|\\\\(?:\\r\\n?|[^\\rux]|u[0-9A-Fa-f]{4}|x[0-9A-Fa-f]{2})"
-      + ")+"
-    + "\\]"  // finished by a ']'
-    // or an escape sequence or line terminator
-    + "|\\\\(?:\\r\\n?|[^\\rux]|u[0-9A-Fa-f]{4}|x[0-9A-Fa-f]{2})"
-  + ")*"
-  // finished by a '/'
-  + "\\/"
-  // with optional flags.
-  // The lexical grammar says flags can be any IdentifierName
-  // which is silly since only the letters 'g', 'i', and 'm' are allowed by
-  // the RegExp spec.
-  // The definition of IdentifierName is huge, so rather than include it here
-  // I use a simple flag definition.
-  // It is possible that this definition could cause an invalid program to
-  // tokenize differently, e.g. "/foo/bar" would tokenize as two tokens:
-  // a RegExp literal "/foo/", and an IdentifierName "bar".
-  // Our disambiguator makes sure that our interpretation holds.
-  + "[gim]*");
-
-var ES5_DIV_OP_TOKEN = /^\/=?/;
-
 /**
  * Defines a scanner for EcmaScript 5 as a function that given a string of
  * EcmaScript 5 source returns a function that when called returns a single
@@ -108,3 +74,86 @@ function makeScanner(source) {
 function isLineTerminator(token) {
   return /(?:^|\/\*.*)[\r\n\u2028\u2029]/.test(token);
 }
+
+/** @enum */
+var TokenType = {
+  COMMENT: 0,
+  WHITE_SPACE: 1,
+  LINE_TERMINATOR_SEQUENCE: 2,
+  // All tokens with type < MAX_IGNORABLE are not lexically significant
+  // except for the way they might affect semicolon insertion.
+  MAX_IGNORABLE: 2,
+  STRING_LITERAL: 3,
+  REGEXP_LITERAL: 4,
+  PUNCTUATOR: 5,
+  IDENTIFIER_NAME: 6
+};
+
+/** Given a valid token returns one of the {@code TokenType} constants. */
+function classifyToken(token) {
+  var ch0 = token[0];
+  if (ch0 === '"' || ch0 === '\'') {
+    return TokenType.STRING_LITERAL;
+  } else if (ch0 === '/') {
+    var ch1 = token[1];
+    return (ch1 === '/' || ch1 === '*')
+      ? TokenType.COMMENT
+      : token.length >= 2 ? TokenType.REGEXP_LITERAL : TokenType.PUNCTUATOR;
+  } else if (ch0 === '.') {
+    return token.length === 1 ? TokenType.PUNCTUATOR : TokenType.NUMBER_LITERAL;
+  } else if ('0' <= ch0 && ch0 <= '9') {
+    return TokenType.NUMBER_LITERAL;
+  } else if (WHITE_SPACE_START.test(ch0)) {
+    return TokenType.WHITE_SPACE;
+  } else if (PUNCTUATOR_START.test(token)) {
+    return TokenType.PUNCTUATOR;
+  } else if (ch0 < ' ' || ch0 === '\u2028' || ch0 === '\u2029') {
+    return TokenType.LINE_TERMINATOR_SEQUENCE;
+  } else {
+    return TokenType.IDENTIFIER_NAME;
+  }
+}
+
+/**
+ * @private
+ */
+var ES5_REGEXP_LITERAL_TOKEN = new RegExp(
+  "^"
+  + "\\/"  // A slash starts a regexp
+  + "(?:"  // which can contain any number of
+    // chars escept charsets, escape-sequences, line-terminators, delimiters
+    + "[^\\\\\\[/\\r\\n\\u2028\\u2029]"
+    // or a charset
+    + "|\\["  // that starts with a '['
+      + "(?:"  // and contains at least one of
+        // chars except charset ends, escape sequences, line terminators
+        + "[^\\]\\\\\\r\\n\\u2028\\u2029]"
+        // or an escape sequence of line continuation
+        + "|\\\\(?:\\r\\n?|[^\\rux]|u[0-9A-Fa-f]{4}|x[0-9A-Fa-f]{2})"
+      + ")+"
+    + "\\]"  // finished by a ']'
+    // or an escape sequence or line terminator
+    + "|\\\\(?:\\r\\n?|[^\\rux]|u[0-9A-Fa-f]{4}|x[0-9A-Fa-f]{2})"
+  + ")*"
+  // finished by a '/'
+  + "\\/"
+  // with optional flags.
+  // The lexical grammar says flags can be any IdentifierName
+  // which is silly since only the letters 'g', 'i', and 'm' are allowed by
+  // the RegExp spec.
+  // The definition of IdentifierName is huge, so rather than include it here
+  // I use a simple flag definition.
+  // It is possible that this definition could cause an invalid program to
+  // tokenize differently, e.g. "/foo/bar" would tokenize as two tokens:
+  // a RegExp literal "/foo/", and an IdentifierName "bar".
+  // Our disambiguator makes sure that our interpretation holds.
+  + "[gim]*");
+
+/** @private */
+var ES5_DIV_OP_TOKEN = /^\/=?/;
+
+/** @private @const */
+var WHITE_SPACE_START
+  = /[\t\x0B\x0C \xA0\u1680\u180E\u2000-\u200A\u202F\u205F\u3000\uFEFF]/;
+/** @private @const */
+var PUNCTUATOR_START = /[{}()\[\];,?:&|+\-*%^~&<>]/;

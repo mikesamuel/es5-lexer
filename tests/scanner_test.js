@@ -298,7 +298,7 @@ function assertEmpty(lexer) {
 function skipSpaces(lexer) {
   return function () {
     for (var token; (token = lexer());) {
-      if (!/^[\s\ufeff]/.test(token)) { return token; }
+      if (classifyToken(token) !== TokenType.WHITE_SPACE) { return token; }
     }
     return null;
   };
