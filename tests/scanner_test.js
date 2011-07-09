@@ -424,13 +424,6 @@ function testRegexpFollowingPostincrement() {
   assertEmpty(lexer);
 }
 
-// TODO: parser tests from Caja.
-// TODO: non-latin spaces.
-// TODO: non-latin identifiers.
-// TODO: escape sequences in identifier names.
-// TODO: classify tokens.
-// TODO: CRLF in line continuations.
-
 function testUnicodeEscapesInIdentifier() {
   assertLexed(
     "var \\u0069\\u0066 = this !== thi\\u0073;",
@@ -612,3 +605,23 @@ function testTokenTypesDisjoint() {
   assertFalse(TokenType.PUNCTUATOR === TokenType.REGEXP_LITERAL);
   assertFalse(TokenType.PUNCTUATOR === TokenType.IDENTIFIER_NAME);
 }
+
+/* KNOWN FAILURE
+function testUnnormalizeIdentifiers() {
+  // According to chapter 6 of ES5, "The [source] text is expected to
+  // have been normalized to Unicode Normalized Form C (canonical
+  // composition)."
+
+  // Normalized.
+  assertLexed("\u00C7", "\u00C7", TokenType.IDENTIFIER_NAME);
+  // Escaped & normalized.
+  assertLexed("\\u00C7", "\\u00C7", TokenType.IDENTIFIER_NAME);
+  // Not normalized.
+  // TODO: Should we normalize the source input on read?
+  assertLexed("C\u0327", "\u00C7", TokenType.IDENTIFIER_NAME);
+  // Escaped but not normalized.
+  assertLexed("C\\u0327", "\u00C7", TokenType.IDENTIFIER_NAME);
+}
+*/
+
+// TODO: non-latin spaces.
