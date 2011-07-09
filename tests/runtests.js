@@ -15,16 +15,25 @@
 	for ( var k in window ) {
 		if ( !( /^test/.test( k ) && filter.test( k ) ) ) { continue; }
 		++nTests;
-		var header = document.createElement( "H2" );
-		header.appendChild( document.createTextNode( k ) );
-		document.body.appendChild( header );
+		var knownFailure = window[ k ].knownFailure;
+		var testHeader = document.createElement( "H2" );
+		var testTitle = k + (knownFailure ? " [expected to fail]" : "");
+		testHeader.appendChild( document.createTextNode( testTitle ) );
+		document.body.appendChild( testHeader );
 		if ( typeof console !== "undefined" ) { console.group( k ); }
 		try {
 			window[ k ]();
-			header.className = "pass";
+			testHeader.className = "pass";
+			if ( knownFailure ) {
+				if ( typeof console !== "undefined" ) {
+					console.warn( k + " passed but was expected to fail" );
+				}
+			}
 		} catch ( e ) {
-			passed = false;
-			header.className = "fail";
+			if ( !knownFailure ) {
+				passed = false;
+			}
+			testHeader.className = knownFailure ? "known-failure" : "fail";
 			var pre = document.createElement( "PRE" );
 			pre.appendChild( document.createTextNode(
 					e.toString() + "\n" + e.stack ) );

@@ -402,7 +402,7 @@ function testRegexpFollowingVoid() {
   assertEmpty(lexer);
 }
 
-/* KNOWN FAILURE
+testRegexpFollowingPreincrement.knownFailure = true;
 function testRegexpFollowingPreincrement() {
   var lexer = skipSpaces(makeScanner("x = ++/x/m"));
   assertNext(lexer, "x", TokenType.IDENTIFIER_NAME);
@@ -411,7 +411,6 @@ function testRegexpFollowingPreincrement() {
   assertNext(lexer, "/x/m", TokenType.REGEXP_LITERAL);
   assertEmpty(lexer);
 }
-*/
 
 function testRegexpFollowingPostincrement() {
   var lexer = skipSpaces(makeScanner("x++/y/m"));
@@ -543,12 +542,12 @@ function testBadIdentifiers() {
   }
 }
 
-/* KNOWN FAILURE
+testIdentifiersAdjacentToNumbers.knownFailure = true;
 function testIdentifiersAdjacentToNumbers() {
   // Not a valid program even with a space in between.
   assertFailsToLex("1x");
 }
-*/
+
 
 function testLanguageDelimiters() {
   assertLexed(
@@ -606,7 +605,7 @@ function testTokenTypesDisjoint() {
   assertFalse(TokenType.PUNCTUATOR === TokenType.IDENTIFIER_NAME);
 }
 
-/* KNOWN FAILURE
+testUnnormalizeIdentifiers.knownFailure = true;
 function testUnnormalizeIdentifiers() {
   // According to chapter 6 of ES5, "The [source] text is expected to
   // have been normalized to Unicode Normalized Form C (canonical
@@ -622,6 +621,5 @@ function testUnnormalizeIdentifiers() {
   // Escaped but not normalized.
   assertLexed("C\\u0327", "\u00C7", TokenType.IDENTIFIER_NAME);
 }
-*/
 
 // TODO: non-latin spaces.

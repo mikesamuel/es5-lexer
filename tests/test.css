@@ -1,2 +1,3 @@
 h2.pass { color: green; font-size: 100% }
 h2.fail { color: red }
+h2.known-failure { color: #888; font-size: 100% }
