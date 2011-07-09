@@ -254,3 +254,165 @@ function testLexer1() {
     "// leave some whitespace at the end of this file  ", "\n", "\n",
     "                         ");
 }
+
+function testLexer2() {
+  assertLexed(
+      "function Pc(a,b){var c;if(b){c=new t(a)}else{a=new x("
+      + "a.year,a.month,a.date,0,0,0);c=new t(a)}var d=[];var e;for(var f=0;"
+      + "f<48;++f){e=of(c.d());if(b){if(f==0){e+=\" (0 minutes)\"}else "
+      + "if(f==1){e+=\" (30 minutes)\"}else{"
+      + "e+=\" (\"+f/2+\" hour\";e+=f==2?\")\":\"s)\"}}d.push(e);c.advance("
+      + "_CB_HALF_HOUR)}return d}",
+
+      "function", " ", "Pc", "(", "a", ",", "b", ")", "{", "var", " ", "c",
+      ";", "if", "(", "b", ")", "{", "c", "=", "new", " ", "t", "(", "a", ")",
+      "}", "else", "{", "a", "=", "new", " ", "x", "(",
+
+      "a", ".", "year", ",", "a", ".", "month", ",", "a", ".", "date", ",", "0",
+      ",", "0", ",", "0", ")", ";", "c", "=", "new", " ", "t", "(", "a", ")",
+      "}", "var", " ", "d", "=", "[", "]", ";", "var", " ", "e", ";", "for", 
+      "(", "var", " ", "f", "=", "0", ";",
+
+      "f", "<", "48", ";", "++", "f", ")", "{", "e", "=", "of", "(", "c", ".",
+      "d", "(", ")", ")", ";", "if", "(", "b", ")", "{", "if", "(", "f", "==",
+      "0", ")", "{", "e", "+=", "\" (0 minutes)\"", "}", "else", " ",
+
+      "if", "(", "f", "==", "1", ")", "{", "e", "+=", "\" (30 minutes)\"", "}",
+      "else", "{",
+      
+      "e", "+=", "\" (\"", "+", "f", "/", "2", "+", "\" hour\"", ";", "e", "+=",
+      "f", "==", "2", "?", "\")\"", ":", "\"s)\"", "}", "}", "d", ".", "push",
+      "(", "e", ")", ";", "c", ".", "advance", "(",
+
+      "_CB_HALF_HOUR", ")", "}", "return", " ", "d", "}");
+}
+
+function assertNext(lexer, token) {
+  assertEquals(token, lexer());
+}
+
+function assertEmpty(lexer) {
+  assertEquals(null, lexer());
+}
+
+function skipSpaces(lexer) {
+  return function () {
+    for (var token; (token = lexer());) {
+      if (!/^[\s\ufeff]/.test(token)) { return token; }
+    }
+    return null;
+  };
+}
+
+function testRegexLiterals() {
+  var lexer = skipSpaces(makeScanner("foo.replace(/[A-Z]/g, '#')"));
+  assertNext(lexer, "foo");
+  assertNext(lexer, ".");
+  assertNext(lexer, "replace");
+  assertNext(lexer, "(");
+  assertNext(lexer, "/[A-Z]/g");
+  assertNext(lexer, ",");
+  assertNext(lexer, "'#'");
+  assertNext(lexer, ")");
+  assertEmpty(lexer);
+}
+
+function testSimpleExpression() {
+  var lexer = skipSpaces(makeScanner("while (foo) { 1; }"));
+  assertNext(lexer, "while");
+  assertNext(lexer, "(");
+  assertNext(lexer, "foo");
+  assertNext(lexer, ")");
+  assertNext(lexer, "{");
+  assertNext(lexer, "1");
+  assertNext(lexer, ";");
+  assertNext(lexer, "}");
+  assertEmpty(lexer);
+}
+
+function testNumberDotWord() {
+  var lexer = skipSpaces(makeScanner("0..toString()"));  // evaluates to "0"
+  assertNext(lexer, "0.");
+  assertNext(lexer, ".");
+  assertNext(lexer, "toString");
+  assertNext(lexer, "(");
+  assertNext(lexer, ")");
+  assertEmpty(lexer);
+}
+
+function testByteOrderMarkersAtBeginning() {
+  var lexer = skipSpaces(makeScanner("\uFEFFvar foo"));
+  assertNext(lexer, "var");
+  assertNext(lexer, "foo");
+  assertEmpty(lexer);
+}
+
+function testByteOrderMarkersBetweenTokens() {
+  var lexer = skipSpaces(makeScanner("1.\uFEFF3"));
+  assertNext(lexer, "1.");
+  assertNext(lexer, "3");
+  assertEmpty(lexer);
+}
+
+function testByteOrderMarkersInStrings() {
+  var lexer = skipSpaces(makeScanner("'\uFEFF'"));
+  assertNext(lexer, "'\uFEFF'");
+  assertEmpty(lexer);
+}
+
+function testEmphaticallyDecremented() {
+  var lexer = skipSpaces(makeScanner("i---j"));
+  assertNext(lexer, "i");
+  assertNext(lexer, "--");
+  assertNext(lexer, "-");
+  assertNext(lexer, "j");
+  assertEmpty(lexer);
+}
+
+function testIsRegexpFollowingWord() {
+  {
+    var lexer = skipSpaces(makeScanner("min / max /*/**/"));
+    assertNext(lexer, "min");
+    assertNext(lexer, "/");
+    assertNext(lexer, "max");
+    assertNext(lexer, "/*/**/");
+    assertEmpty(lexer);
+  }
+  {
+    var lexer = skipSpaces(makeScanner("in / max /*/**/"));
+    assertNext(lexer, "in");
+    assertNext(lexer, "/ max /");
+    assertNext(lexer, "*");
+    assertNext(lexer, "/**/");
+    assertEmpty(lexer);
+  }
+}
+
+function testRegexpFollowingVoid() {
+  var lexer = skipSpaces(makeScanner("void /./"));
+  assertNext(lexer, "void");
+  assertNext(lexer, "/./");
+  assertEmpty(lexer);
+}
+
+/* KNOWN FAILURE
+function testRegexpFollowingPreincrement() {
+  var lexer = skipSpaces(makeScanner("x = ++/x/m"));
+  assertNext(lexer, "x");
+  assertNext(lexer, "=");
+  assertNext(lexer, "++");
+  assertNext(lexer, "/x/m");
+  assertEmpty(lexer);
+}
+*/
+
+function testRegexpFollowingPostincrement() {
+  var lexer = skipSpaces(makeScanner("x++/y/m"));
+  assertNext(lexer, "x");
+  assertNext(lexer, "++");
+  assertNext(lexer, "/");
+  assertNext(lexer, "y");
+  assertNext(lexer, "/");
+  assertNext(lexer, "m");
+  assertEmpty(lexer);
+}

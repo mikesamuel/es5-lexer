@@ -30,8 +30,8 @@ function guessNextIsRegexp(preceder) {
   // ">>>=", "?", "[", "^", "^=", "^^", "^^=",
   // "{", "|", "|=", "||", "||=", "~",
   // "break", "case", "continue", "delete", "do",
-  // "else", "finally", "instanceof", "return",
-  // "throw", "try", "typeof"
+  // "else", "finally", "in", "instanceof", "return",
+  // "throw", "try", "typeof", "void",
 
   var precederLen = preceder.length;
   var lastChar = preceder.charAt(precederLen - 1);
@@ -44,6 +44,6 @@ function guessNextIsRegexp(preceder) {
   default:
     // [:-?] matches ':', ';', '<', '=', '>', '?'
     // [{-~] matches '{', '|', '}', '~'
-    return /^(?:break|case|continue|delete|do|else|finally|instanceof|return|throw|try|typeof)$|[%&(*,:-?\[^{-~]$/.test(preceder);
+    return /^(?:break|case|continue|delete|do|else|finally|in|instanceof|return|throw|try|typeof|void)\b$|[%&(*,:-?\[^{-~]$/.test(preceder);
   }
 }
