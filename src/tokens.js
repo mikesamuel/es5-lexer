@@ -198,9 +198,9 @@ function () {
   var NUMERIC_LITERAL
     = "(?:" + DECIMAL_LITERAL + "|" + HEX_INTEGER_LITERAL + ")";
   var PUNCTUATOR
-    = "[{}()\[\].;,?:]|&&|\\|\\||\\+\\+|--"
+    = "[{}()\\[\\].;,?:]|&&|\\|\\||\\+\\+|--"
     + "|(?:[*%^\\~+&|\\-]|>{1,3}|<<?|[!=]=?)=?";
-  var TOKEN = "(?:" + IDENTIFIER_NAME + "|" + PUNCTUATOR + "|" + NUMERIC_LITERAL
+  var TOKEN = "(?:" + IDENTIFIER_NAME + "|" + NUMERIC_LITERAL + "|" + PUNCTUATOR
       + "|" + STRING_LITERAL + "|" + COMMENT + "|" + WHITE_SPACE
       + "|" + LINE_TERMINATOR_SEQUENCE + ")";
 

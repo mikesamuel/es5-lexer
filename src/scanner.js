@@ -6,7 +6,8 @@
  */
 
 var ES5_REGEXP_LITERAL_TOKEN = new RegExp(
-  "\\/"  // A slash starts a regexp
+  "^"
+  + "\\/"  // A slash starts a regexp
   + "(?:"  // which can contain any number of
     // chars escept charsets, escape-sequences, line-terminators, delimiters
     + "[^\\\\\\[/\\r\\n\\u2028\\u2029]"
@@ -14,13 +15,13 @@ var ES5_REGEXP_LITERAL_TOKEN = new RegExp(
     + "|\\["  // that starts with a '['
       + "(?:"  // and contains at least one of
         // chars except charset ends, escape sequences, line terminators
-        + "[^\]\\\\\\r\\n\\u2028\\u2029]"
+        + "[^\\]\\\\\\r\\n\\u2028\\u2029]"
         // or an escape sequence of line continuation
-        + "|\\\\(?:\r\n?|[^\rux]|u[0-9A-Fa-f]{4}|x[0-9A-Fa-f]{2})"
+        + "|\\\\(?:\\r\\n?|[^\\rux]|u[0-9A-Fa-f]{4}|x[0-9A-Fa-f]{2})"
       + ")+"
     + "\\]"  // finished by a ']'
     // or an escape sequence or line terminator
-    + "|\\\\(?:\r\n?|[^\rux]|u[0-9A-Fa-f]{4}|x[0-9A-Fa-f]{2})"
+    + "|\\\\(?:\\r\\n?|[^\\rux]|u[0-9A-Fa-f]{4}|x[0-9A-Fa-f]{2})"
   + ")*"
   // finished by a '/'
   + "\\/"
@@ -35,6 +36,8 @@ var ES5_REGEXP_LITERAL_TOKEN = new RegExp(
   // a RegExp literal "/foo/", and an IdentifierName "bar".
   // Our disambiguator makes sure that our interpretation holds.
   + "[gim]*");
+
+var ES5_DIV_OP_TOKEN = /^\/=?/;
 
 /**
  * Defines a scanner for EcmaScript 5 as a function that given a string of
@@ -57,7 +60,7 @@ var ES5_REGEXP_LITERAL_TOKEN = new RegExp(
  * <p>
  * Throws an Error if there is no valid next token.
  */
-function scanner(source) {
+function makeScanner(source) {
   var src = source;
   // Last non-comment, non-whitespace token.
   var lastNonIgnorable = null;
@@ -67,20 +70,20 @@ function scanner(source) {
     if (!src) {
       return (src = null);  // Release for GC.
     }
-    var match = ES5_TOKEN.match(src);
+    var match = src.match(ES5_TOKEN);
     if (!match) {
       if ("/" === src[0]) {
-        match = (
-          lastNonIgnorable === null || guessIsRegexp(lastNonIgnorable)
+        match = src.match(
+          lastNonIgnorable === null || guessNextIsRegexp(lastNonIgnorable)
           ? ES5_REGEXP_LITERAL_TOKEN
-          : ES5_DIV_OP_TOKEN).match(src);
+          : ES5_DIV_OP_TOKEN);
       }
       if (!match) {
         throw new Error("No valid token at front of " + src);
       }
     }
     var token = match[0];
-    if (!ES5_IGNORABLE_TOKEN_PREFIX) {  // Not ignorable.
+    if (!ES5_IGNORABLE_TOKEN_PREFIX.test(token)) {  // Not ignorable.
       lastNonIgnorable = token;
     }
     src = src.substring(token.length);
