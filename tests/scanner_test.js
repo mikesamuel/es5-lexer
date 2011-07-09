@@ -416,3 +416,10 @@ function testRegexpFollowingPostincrement() {
   assertNext(lexer, "m");
   assertEmpty(lexer);
 }
+
+// TODO: parser tests from Caja.
+// TODO: non-latin spaces.
+// TODO: non-latin identifiers.
+// TODO: escape sequences in identifier names.
+// TODO: classify tokens.
+// TODO: CRLF in line continuations.
