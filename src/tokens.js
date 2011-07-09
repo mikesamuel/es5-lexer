@@ -189,20 +189,23 @@ function () {
   var ESCAPE_SEQUENCE_OR_LINE_CONTINUATION
     = "\\\\(?:\\r\\n?|[^\\rux89]|u[0-9A-Fa-f]{4}|x[0-9A-Fa-f]{2})";
   var STRING_LITERAL = "(?:"
-    + "\"(?:[^\"\\\\]|" + ESCAPE_SEQUENCE_OR_LINE_CONTINUATION + ")*\""
-    + "|'(?:[^\'\\\\]|" + ESCAPE_SEQUENCE_OR_LINE_CONTINUATION + ")*'"
+    + "\"(?:[^\"\\\\" + LINE_TERMINATOR_CHARS + "]|"
+      + ESCAPE_SEQUENCE_OR_LINE_CONTINUATION + ")*\""
+    + "|'(?:[^\'\\\\" + LINE_TERMINATOR_CHARS + "]|"
+      + ESCAPE_SEQUENCE_OR_LINE_CONTINUATION + ")*'"
     + ")";
-  var DECIMAL_LITERAL = "(?:(?:0|[1-9][0-9]*)(?:\\.[0-9]*)?|\\.[0-9]+)"
+  var DECIMAL_LITERAL
+    = "(?:(?:0[0-7]*(?![89])|[1-9][0-9]*)(?:\\.[0-9]*)?|\\.[0-9]+)"
     + "(?:[eE][+-]?[0-9]+)?";
   var HEX_INTEGER_LITERAL = "0[xX][0-9A-Fa-f]+";
   var NUMERIC_LITERAL
-    = "(?:" + DECIMAL_LITERAL + "|" + HEX_INTEGER_LITERAL + ")";
+    = "(?:" + HEX_INTEGER_LITERAL + "|" + DECIMAL_LITERAL + ")";
   var PUNCTUATOR
     = "[{}()\\[\\].;,?:]|&&|\\|\\||\\+\\+|--"
     + "|(?:[*%^\\~+&|\\-]|>{1,3}|<<?|[!=]=?)=?";
   var TOKEN = "(?:" + IDENTIFIER_NAME + "|" + NUMERIC_LITERAL + "|" + PUNCTUATOR
-      + "|" + STRING_LITERAL + "|" + COMMENT + "|" + WHITE_SPACE
-      + "|" + LINE_TERMINATOR_SEQUENCE + ")";
+    + "|" + STRING_LITERAL + "|" + COMMENT + "|" + WHITE_SPACE
+    + "|" + LINE_TERMINATOR_SEQUENCE + ")";
 
   ES5_TOKEN = new RegExp("^" + TOKEN);
 

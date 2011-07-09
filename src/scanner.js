@@ -79,14 +79,17 @@ function isLineTerminator(token) {
 var TokenType = {
   COMMENT: 0,
   WHITE_SPACE: 1,
+  // Note that some comments are semantically treated as line terminator
+  // sequences.  See isLineTerminator(token).
   LINE_TERMINATOR_SEQUENCE: 2,
   // All tokens with type < MAX_IGNORABLE are not lexically significant
   // except for the way they might affect semicolon insertion.
   MAX_IGNORABLE: 2,
   STRING_LITERAL: 3,
-  REGEXP_LITERAL: 4,
-  PUNCTUATOR: 5,
-  IDENTIFIER_NAME: 6
+  NUMERIC_LITERAL: 4,
+  REGEXP_LITERAL: 5,
+  PUNCTUATOR: 6,
+  IDENTIFIER_NAME: 7
 };
 
 /** Given a valid token returns one of the {@code TokenType} constants. */
@@ -100,9 +103,10 @@ function classifyToken(token) {
       ? TokenType.COMMENT
       : token.length >= 2 ? TokenType.REGEXP_LITERAL : TokenType.PUNCTUATOR;
   } else if (ch0 === '.') {
-    return token.length === 1 ? TokenType.PUNCTUATOR : TokenType.NUMBER_LITERAL;
+    return token.length === 1
+      ? TokenType.PUNCTUATOR : TokenType.NUMERIC_LITERAL;
   } else if ('0' <= ch0 && ch0 <= '9') {
-    return TokenType.NUMBER_LITERAL;
+    return TokenType.NUMERIC_LITERAL;
   } else if (WHITE_SPACE_START.test(ch0)) {
     return TokenType.WHITE_SPACE;
   } else if (PUNCTUATOR_START.test(token)) {
@@ -119,7 +123,7 @@ function classifyToken(token) {
  */
 var ES5_REGEXP_LITERAL_TOKEN = new RegExp(
   "^"
-  + "\\/"  // A slash starts a regexp
+  + "\\/(?![*/])"  // A slash starts a regexp but only if not a comment start.
   + "(?:"  // which can contain any number of
     // chars escept charsets, escape-sequences, line-terminators, delimiters
     + "[^\\\\\\[/\\r\\n\\u2028\\u2029]"
@@ -156,4 +160,4 @@ var ES5_DIV_OP_TOKEN = /^\/=?/;
 var WHITE_SPACE_START
   = /[\t\x0B\x0C \xA0\u1680\u180E\u2000-\u200A\u202F\u205F\u3000\uFEFF]/;
 /** @private @const */
-var PUNCTUATOR_START = /[{}()\[\];,?:&|+\-*%^~&<>]/;
+var PUNCTUATOR_START = /[{}()\[\];,?:&|+\-*%^~&<>!=]/;
