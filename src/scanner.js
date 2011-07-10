@@ -30,6 +30,7 @@ function makeScanner(source) {
   var src = source;
   // Last non-comment, non-whitespace token.
   var lastNonIgnorable = null;
+  var fail;  // Never initialized on purpose.
 
   return function () {
     // Null indicates no more tokens.
@@ -45,7 +46,11 @@ function makeScanner(source) {
           : ES5_DIV_OP_TOKEN);
       }
       if (!match) {
-        throw new Error("No valid token at front of " + src);
+        // Throw in such a way that doesn't prevent closure 
+        // from doing expression optimizations here.
+        // Since throw is a statement, not an expression, having a throw here
+        // ends up costing nearly 30 bytes gzipped.
+        fail[src]();
       }
     }
     var token = match[0];
