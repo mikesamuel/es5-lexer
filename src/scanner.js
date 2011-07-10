@@ -142,7 +142,7 @@ var ES5_REGEXP_LITERAL_TOKEN = new RegExp(
   // finished by a '/'
   + "\\/"
   // with optional flags.
-  // The lexical grammar says flags can be any IdentifierName
+  // The lexical grammar says flags can be any number of IdentifierParts
   // which is silly since only the letters 'g', 'i', and 'm' are allowed by
   // the RegExp spec.
   // The definition of IdentifierName is huge, so rather than include it here

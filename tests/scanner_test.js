@@ -404,11 +404,11 @@ function testRegexpFollowingVoid() {
 
 testRegexpFollowingPreincrement.knownFailure = true;
 function testRegexpFollowingPreincrement() {
-  var lexer = skipSpaces(makeScanner("x = ++/x/m"));
+  var lexer = skipSpaces(makeScanner("x = ++/x/mi"));
   assertNext(lexer, "x", TokenType.IDENTIFIER_NAME);
   assertNext(lexer, "=", TokenType.PUNCTUATOR);
   assertNext(lexer, "++", TokenType.PUNCTUATOR);
-  assertNext(lexer, "/x/m", TokenType.REGEXP_LITERAL);
+  assertNext(lexer, "/x/mi", TokenType.REGEXP_LITERAL);
   assertEmpty(lexer);
 }
 
@@ -621,5 +621,24 @@ function testUnnormalizeIdentifiers() {
   // Escaped but not normalized.
   assertLexed("C\\u0327", "\u00C7", TokenType.IDENTIFIER_NAME);
 }
+
+testInvalidRegexpFlags.knownFailure = true;
+function testInvalidRegexpFlags() {
+  // RegularExpressionFlags is defined as IdentifierPart* which allows for
+  // RegExp literals like /foo/1234 and /bar/while.
+  // But IdentifierPart is a huge complex production so instead we defined
+  // RegularExpressionFlags based on the actual characters allowed
+  // ('i', 'g', 'm')
+  // This scanner could do a better 
+  assertLexed("/foo/instanceof RegExp", "/foo/instanceof", " ", "RegExp");
+  // Not actually a valid program but almost.
+  assertLexed(
+    "do x = /foo/while \n (true)",
+    "do", " ", "x", " ", "=", " ", "/foo/while", " ", "\n",
+    " ", "(", "true", ")");
+  // These tests fail, but the disambiguator makes sure that a regular
+  // expression never runs into a keyword or number.
+}
+
 
 // TODO: non-latin spaces.

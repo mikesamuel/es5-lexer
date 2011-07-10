@@ -31,9 +31,10 @@ function disambiguateTokenStream(tokenStream) {
       // Release for GC.
       return (tokenStream = null);
     }
-    var ch0 = token[0], ch1;
+    var ch0 = token[0], ch1, tokenLen;
     if ("/" === ch0 && (ch1 = token[1]) !== "/" && ch1 !== "*") {
-      if (token.length > 2) {  // A regex literal
+      tokenLen = token.length;
+      if (tokenLen > 2) {  // A regex literal
         // a regular expression /foo/i is transformed to
         //    /./.constructor(/foo/i)
 
@@ -72,7 +73,7 @@ function disambiguateTokenStream(tokenStream) {
           pending.push(token, ")");
         }
         return "/./";
-      } else {  // A division operator.
+      } else if (tokenLen == 1) {  // A division operator.
         // A use of the division operator (a / b) is transformed to
         // (a * 1 / b)
 
@@ -85,14 +86,30 @@ function disambiguateTokenStream(tokenStream) {
         // sides to numbers, and have the same precedence, and 1 is
         // multiplicative identity.
 
-        // A use of the /= operator (a /= b) is transformed to (a *= 1 / b)
-      
-        // Same argument as 2.
-
-        // This is semantics preserving because the left-hand side is
-        // unchanged and is evaluated only once, and same argument as 2.
         pending.push("1", "/");
         return token === "/" ? "*" : "*=";
+      } else {  // A division and assignment operator.
+        // We cannot replace (a /= b) with (a *= 1 / b), since (a /= b) really
+        // means (a = a / b) so if b is an infix operator whose precedence is 
+        // between that of division and assignment then the (1 /) we introduce
+        // will bind to only the left operand of b.
+
+        // A use of the /= operator (a /= b) is transformed to
+        // (a /=
+        //  b)
+    
+        // If our lexing was wrong and the slash was the start of a regular
+        // expression, then putting a newline after the equals sign causes
+        // the regular expression to fail to parse.
+
+        // This is semantics preserving because no semicolon can be inserted
+        // after a /= operator since it requires a right operand and
+        // /= is not a restricted production.
+
+        // This is less than ideal because it means that the line numbers in
+        // the original do not perfectly match up with the line numbers in the
+        // result.
+        pending.push("\n");
       }
     }
     if (token.indexOf("\\u00") >= 0 && "'" !== ch0 && "\"" !== ch0) {
