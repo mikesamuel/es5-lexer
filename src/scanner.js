@@ -77,19 +77,19 @@ function isLineTerminator(token) {
 
 /** @enum */
 var TokenType = {
-  COMMENT: 0,
-  WHITE_SPACE: 1,
+  "COMMENT": 0,
+  "WHITE_SPACE": 1,
   // Note that some comments are semantically treated as line terminator
   // sequences.  See isLineTerminator(token).
-  LINE_TERMINATOR_SEQUENCE: 2,
+  "LINE_TERMINATOR_SEQUENCE": 2,
   // All tokens with type < MAX_IGNORABLE are not lexically significant
   // except for the way they might affect semicolon insertion.
-  MAX_IGNORABLE: 2,
-  STRING_LITERAL: 3,
-  NUMERIC_LITERAL: 4,
-  REGEXP_LITERAL: 5,
-  PUNCTUATOR: 6,
-  IDENTIFIER_NAME: 7
+  "MAX_IGNORABLE": 2,
+  "STRING_LITERAL": 3,
+  "NUMERIC_LITERAL": 4,
+  "REGEXP_LITERAL": 5,
+  "PUNCTUATOR": 6,
+  "IDENTIFIER_NAME": 7
 };
 
 /** Given a valid token returns one of the {@code TokenType} constants. */
