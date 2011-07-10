@@ -558,11 +558,12 @@ function testLanguageDelimiters() {
     "var w = /<script>/;", "var", " ", "w", " ", "=", " ",
     "/<script>/", es5Lexer.TokenType.REGEXP_LITERAL, ";");
   assertLexed(
-    "var x = a </script>/;",
+    "var x = a </script>/ /= 2;",
 
     "var", " ", "x", " ", "=", " ", "a", " ",
     "<", es5Lexer.TokenType.PUNCTUATOR,
-    "/script>/", es5Lexer.TokenType.REGEXP_LITERAL, ";");
+    "/script>/", es5Lexer.TokenType.REGEXP_LITERAL,
+    " ", "/=", es5Lexer.TokenType.PUNCTUATOR, " ", "2", ";");
   assertLexed(
     "[[0]]>1",
 

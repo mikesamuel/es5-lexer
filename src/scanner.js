@@ -29,36 +29,44 @@
 function makeScanner(source) {
   var src = source;
   // Last non-comment, non-whitespace token.
-  var lastNonIgnorable = null;
-  var fail;  // Never initialized on purpose.
+  var lastNonIgnorable;
+  var fail;  // Purposefully never initialized.
 
   return function () {
-    // Null indicates no more tokens.
-    if (!src) {
-      return (src = null);  // Release for GC.
-    }
-    var match = src.match(ES5_TOKEN);
-    if (!match) {
-      if ("/" === src[0]) {
-        match = src.match(
-          lastNonIgnorable === null || guessNextIsRegexp(lastNonIgnorable)
-          ? ES5_REGEXP_LITERAL_TOKEN
-          : ES5_DIV_OP_TOKEN);
-      }
-      if (!match) {
-        // Throw in such a way that doesn't prevent closure 
-        // from doing expression optimizations here.
-        // Since throw is a statement, not an expression, having a throw here
-        // ends up costing nearly 30 bytes gzipped.
-        fail[src]();
-      }
-    }
-    var token = match[0];
-    if (!ES5_IGNORABLE_TOKEN_PREFIX.test(token)) {  // Not ignorable.
-      lastNonIgnorable = token;
-    }
-    src = src.substring(token.length);
-    return token;
+    var match, token;
+    // The below is hand optimized to save about 100B gzipped.
+    // Closure-compiler expression optimization just doesn't cut it.
+    return (src
+            ? (
+              // Try to pull off a regular token.
+              match = src.match(ES5_TOKEN)
+              // Fallback to regular expression or div op token if no standard
+              // token found on the front of the input.
+                || src.match(
+                  !lastNonIgnorable || guessNextIsRegexp(lastNonIgnorable)
+                    ? ES5_REGEXP_LITERAL_TOKEN
+                    : ES5_DIV_OP_TOKEN),
+              
+              // The below will cause this to fail with an error if there is
+              // no token at the front of the input.
+              token = match[0],
+
+              // Keep track of the last ignorable token so we can use Waldemar's
+              // heuristic to decide whether a '/' starts a
+              // RegularExpressionLiteral or a DivisionOperator.
+              ES5_IGNORABLE_TOKEN_PREFIX.test(token)
+              || (lastNonIgnorable = token),
+
+              // Consume the parsed portion of the input.
+              src = src.substring(token.length),
+
+              token)
+
+            // Empty src indicates end of input.
+            // Return empty string instead of null so that someone who is
+            // not checking the token is more likely to get an error than to
+            // loop infinitely.
+            : null);
   };
 }
 
@@ -100,25 +108,34 @@ var TokenType = {
 /** Given a valid token returns one of the {@code TokenType} constants. */
 function classifyToken(token) {
   var ch0 = token[0];
+  // A string starts with a quote.
   if (ch0 === '"' || ch0 === '\'') {
     return TokenType.STRING_LITERAL;
   } else if (ch0 === '/') {
     var ch1 = token[1];
     return (ch1 === '/' || ch1 === '*')
       ? TokenType.COMMENT
-      : token.length >= 2 ? TokenType.REGEXP_LITERAL : TokenType.PUNCTUATOR;
+      // All regular expression literals are at least length 3.
+      : token.length > 2 ? TokenType.REGEXP_LITERAL : TokenType.PUNCTUATOR;
   } else if (ch0 === '.') {
+    // If a dot is alone it is punctuation.
+    // If the ... becomes a lexical token, this needs to change.
     return token.length === 1
       ? TokenType.PUNCTUATOR : TokenType.NUMERIC_LITERAL;
   } else if ('0' <= ch0 && ch0 <= '9') {
+    // Numbers start with '.' (handled above) or a number.
+    // Signs are separate punctuator tokens.
     return TokenType.NUMERIC_LITERAL;
   } else if (WHITE_SPACE_START.test(ch0)) {
     return TokenType.WHITE_SPACE;
   } else if (PUNCTUATOR_START.test(token)) {
     return TokenType.PUNCTUATOR;
   } else if (ch0 < ' ' || ch0 === '\u2028' || ch0 === '\u2029') {
+    // Control characters not matched by whitespace are line terminators
+    // as are the specials listed above.
     return TokenType.LINE_TERMINATOR_SEQUENCE;
   } else {
+    // IdentifierName is a hairy production that matches everything else.
     return TokenType.IDENTIFIER_NAME;
   }
 }
