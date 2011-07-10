@@ -128,5 +128,12 @@ function testOperatorPrecedences() {
   assertEvalToSameDisambiguated("var x = 10, y = 2; x /= ++y; return [x, y]");
 }
 
+function testDisambiguateComments() {
+  assertUnambiguous("/**/");
+  assertUnambiguous("/*foo*/");
+  assertUnambiguous("/*foo\nbar*/");
+  assertUnambiguous("//");
+  assertUnambiguous("// foo");
+}
 
 // TODO: very long tokens.
