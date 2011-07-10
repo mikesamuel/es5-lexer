@@ -26,7 +26,7 @@ function disambiguateTokenStream(tokenStream) {
   return function () {
     var token, lastSlash, ch0, ch1, tokenLen;
     // If any transformations queued extra tokens, exhaust them first.
-    if (pending.length) {
+    if (pending[0]) {
       return pending.shift();
     }
     // Check whether the stream is finished.
