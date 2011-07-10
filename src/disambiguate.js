@@ -15,7 +15,7 @@
  * @param tokenStream A function that when called, returns the next token or
  *     null to indicate end of input.
  */
-function disambiguateTokenStream(tokensStream) {
+function disambiguateTokenStream(tokenStream) {
   // TODO: Is it important to make sure that numbers/identifiers are never flush
   // against one another?  Is it important to accept improperly spaced inputs?
 
@@ -31,8 +31,8 @@ function disambiguateTokenStream(tokensStream) {
       // Release for GC.
       return (tokenStream = null);
     }
-    var ch0 = token[0];
-    if ("/" === ch0) {
+    var ch0 = token[0], ch1;
+    if ("/" === ch0 && (ch1 = token[1]) !== "/" && ch1 !== "*") {
       if (token.length > 2) {  // A regex literal
         // a regular expression /foo/i is transformed to
         //    /./.constructor(/foo/i)
@@ -80,13 +80,13 @@ function disambiguateTokenStream(tokensStream) {
         // expression, then replacing the slash with an asterisk makes the
         // content obviously a numeric operation, so our interpretation is
         // maintained.
-        
+      
         // This is semantics preserving because both * and / coerce both
         // sides to numbers, and have the same precedence, and 1 is
         // multiplicative identity.
 
         // A use of the /= operator (a /= b) is transformed to (a *= 1 / b)
-        
+      
         // Same argument as 2.
 
         // This is semantics preserving because the left-hand side is
