@@ -16,6 +16,9 @@ CLOSURE_COMPILER=java -jar tools/closure/compiler.jar \
 
 all: build/es5_lexer_compiled.js
 
+clean:
+	rm -rf build
+
 build/es5_lexer_compiled.js: $(JS_SOURCES)
 	@echo "$^" | perl -pe 's/(?:^|\s+)(\S)/ --js $$1/g' \
 	| xargs $(CLOSURE_COMPILER) \
