@@ -1,5 +1,36 @@
 RHINO=java -jar tools/rhino/js.jar
 
+JS_SOURCES=\
+  build/tokens.js \
+  build/guess_is_regexp.js \
+  build/scanner.js \
+  build/disambiguate.js \
+  build/exports.js
+
+EXTERNS=--externs tools/closure/externs.js \
+  --externs tools/closure/webkit_console.js
+
+CLOSURE_COMPILER=java -jar tools/closure/compiler.jar \
+   --compilation_level ADVANCED_OPTIMIZATIONS \
+   --language_in ECMASCRIPT5
+
+all: build/es5_lexer_compiled.js
+
+build/es5_lexer_compiled.js: $(JS_SOURCES)
+	@echo "$^" | perl -pe 's/(?:^|\s+)(\S)/ --js $$1/g' \
+	| xargs $(CLOSURE_COMPILER) \
+	    $(EXTERNS) \
+	    --output_wrapper="(function(global){%output%}(this))" \
+	    | perl -pe 's/\bwindow.//g; s/;\}/}/g' \
+	    > "$@" \
+	    || (rm "$@"; false)
+	@echo Size of built bundle raw and gzipped.
+	@gzip -c -9 "$@" > "$(TEMP)"/gzipped
+	@wc -c "$@" "$(TEMP)"/gzipped
+
+build/%.js: src/%.js
+	@cp "$^" "$@"
+
 build/tokens.js: src/tokens.js
 	@mkdir -p build
 	@echo Running $^ in Rhino to produce $@
