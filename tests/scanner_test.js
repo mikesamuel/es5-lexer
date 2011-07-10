@@ -396,9 +396,9 @@ function testIsRegexpFollowingWord() {
 }
 
 function testRegexpFollowingVoid() {
-  var lexer = skipSpaces(makeScanner("void /./"));
+  var lexer = skipSpaces(makeScanner("void /./mi"));
   assertNext(lexer, "void", TokenType.IDENTIFIER_NAME);
-  assertNext(lexer, "/./", TokenType.REGEXP_LITERAL);
+  assertNext(lexer, "/./mi", TokenType.REGEXP_LITERAL);
   assertEmpty(lexer);
 }
 
@@ -640,5 +640,40 @@ function testInvalidRegexpFlags() {
   // expression never runs into a keyword or number.
 }
 
+function testNonLatinSpacesAndIdentifierParts() {
+  // U+200A is a space character,
+  // U+200C is a joiner,
+  // U+20E1 is a combining mark, and
+  // U+2028 is a line terminator character.
+  assertLexed(
+    "foo" + "\u200C" + "bar" + "\u200A" + "baz" + "\u20E1" + "boo" + "\u2028",
 
-// TODO: non-latin spaces.
+    "foo\u200Cbar", TokenType.IDENTIFIER_NAME,
+    "\u200A", TokenType.WHITE_SPACE,
+    "baz\u20E1boo", TokenType.IDENTIFIER_NAME,
+    "\u2028", TokenType.LINE_TERMINATOR_SEQUENCE);
+
+  // The connectors in identifiers can be escaped.
+  assertLexed(
+    "foo" + "\\u200C" + "bar" + "\u200A" + "baz" + "\\u20E1" + "boo" + "\u2028",
+
+    "foo\\u200Cbar", TokenType.IDENTIFIER_NAME,
+    "\u200A", TokenType.WHITE_SPACE,
+    "baz\\u20E1boo", TokenType.IDENTIFIER_NAME,
+    "\u2028", TokenType.LINE_TERMINATOR_SEQUENCE);
+
+  // But spaces and line terminators cannot be.
+  assertFailsToLex(
+    "foo" + "\\u200C" + "bar" + "\\u200A"
+    + "baz" + "\\u20E1" + "boo" + "\u2028",
+    12);
+  assertFailsToLex(
+    "foo" + "\\u200C" + "bar" + "\u200A"
+    + "baz" + "\\u20E1" + "boo" + "\\u2028",
+    25);
+  
+  // Combining marks cannot appear at the front of an identifier name
+  // regardless.
+  assertFailsToLex("\\u200C" + "bar", 0);
+  assertFailsToLex("\\u20E1" + "boo", 0);
+}
