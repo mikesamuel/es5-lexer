@@ -24,17 +24,19 @@ function disambiguateTokenStream(tokenStream) {
   var pending = [];
   
   return function () {
-    var token, lastSlash;
-    if (pending.length) { return pending.shift(); }
+    var token, lastSlash, ch0, ch1, tokenLen;
+    // If any transformations queued extra tokens, exhaust them first.
+    if (pending.length) {
+      return pending.shift();
+    }
+    // Check whether the stream is finished.
     if (!(token = tokenStream())) {
-      // tokenStream is finished.
       // Release for GC.
       return (tokenStream = null);
     }
-    var ch0 = token[0], ch1, tokenLen;
-    if ("/" === ch0 && (ch1 = token[1]) !== "/" && ch1 !== "*") {
-      tokenLen = token.length;
-      if (tokenLen > 2) {  // A regex literal
+    if ((ch0 = token[0]) === "/"
+        && (ch1 = token[1]) !== "/" && ch1 !== "*") {
+      if ((tokenLen = token.length) > 2) {  // A regex literal
         // a regular expression /foo/i is transformed to
         //    /./.constructor(/foo/i)
 
@@ -110,6 +112,7 @@ function disambiguateTokenStream(tokenStream) {
         // the original do not perfectly match up with the line numbers in the
         // result.
         pending.push("\n");
+        return token;
       }
     }
     if (token.indexOf("\\u00") >= 0 && "'" !== ch0 && "\"" !== ch0) {
@@ -119,7 +122,7 @@ function disambiguateTokenStream(tokenStream) {
       // are consistently interpreted as keywords or not.
       // TODO: Should this be done earlier so that intermediate passes that
       // look for keywords can easily find them?
-      token = token.replace("\\u00[0xA-F]{2}", decodeHexChar);
+      return token.replace(/\\u00[0-9A-F]{2}/ig, decodeHexChar);
     }
     return token;
   };
@@ -140,5 +143,5 @@ function escOneDoubleQuoteSpecial(ch) {
 }
 /** @private */
 function decodeHexChar(ch) {
-  return String.fromCharCode(Integer.parseInt(ch.substring(2)));
+  return String.fromCharCode(parseInt(ch.substring(2), 16));
 }

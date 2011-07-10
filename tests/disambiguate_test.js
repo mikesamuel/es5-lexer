@@ -59,7 +59,18 @@ function testInvalidRegexpFlags() {
 function testAmbiguousThis() {
   assertDisambiguated(
     "this",
-    "thi\u0073");
+    "thi\\u0073");
+  assertDisambiguated(
+    "this",
+    "\\u0074\\u0068\\u0069\\u0073");
+  assertDisambiguated("in", "\\u0069\\u006e");
+  assertDisambiguated("in", "\\u0069\\u006E");
+  // But definitely don't do this where there might be prior ambiguity.
+  assertUnambiguous("'\\u005c'");  // Not '\'
+  assertUnambiguous("\"\\u005c\"");  // Not '\'
+  assertDisambiguated(
+    "/./.constructor(\"[/\\\\u005c]\",\"i\")",
+    "/[/\\u005c]/i");
 }
 
 function assertEvalToSameDisambiguated(expr) {
