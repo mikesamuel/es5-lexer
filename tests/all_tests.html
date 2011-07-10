@@ -1,0 +1,87 @@
+<html>
+<head>
+<title>All Tests</title>
+<style>iframe { width: 40em }</style>
+</head>
+<body>
+<script>(function () {
+
+var tests = [
+  "scanner_test.html",
+  "scanner_test.html?compiled",
+  "disambiguate_test.html",
+  "disambiguate_test.html?compiled",
+];
+
+var nFailed = 0;
+var nTests = tests.length;
+var nToLoad = nTests;
+var testIndex = 0;
+function runTest() {
+  // Ignore elision in tests array.
+  while (testIndex < nTests && !tests[testIndex]) { ++testIndex; }
+  if (testIndex === nTests) {
+    fixupGeometry();
+    return;
+  }
+  var frame = document.createElement('iframe');
+  frame.onload = (function (frame) {
+    return function () {
+      setTimeout(runTest, 0);
+      // Code in runtests.js sets the fragment.
+      if (!/#OK$/.test(String(frame.contentWindow.location.href))) {
+        ++nFailed;
+        frame.style.border = '2px solid red';
+      } else {
+        frame.style.border = '2px solid green';
+      }
+      if (!--nToLoad) {  // Last test.  Signal whether all passed.
+        if (!nFailed) {
+          document.body.style.backgroundColor = '#dfd';
+        } else {
+          document.body.style.backgroundColor = '#fdd';
+        }
+      }
+    };
+  })(frame);
+  var testUrl = tests[testIndex++];
+  testUrl += (/\?/.test(testUrl) ? '&' : '?') + 'nocache=' + Math.random();
+  frame.src = testUrl;
+  document.body.appendChild(frame);
+}
+runTest();
+})();
+</script>
+
+<script>
+function fixupGeometry() {
+  // Resize to better use vertical space.
+  var iframes = document.getElementsByTagName('iframe');
+  var lastTop = -1;
+  var stackSize = 0;
+  for (var i = 0, n = iframes.length; i < n; ++i) {
+    var top = iframes[i].offsetTop;
+    if (top !== lastTop) {
+      ++stackSize;
+      lastTop = top;
+    }
+  }
+
+  if (iframes.length) {
+    var margin = iframes[0].offsetTop;
+    var bodyHeight = (window.innerHeight
+        || (document.documentElement && document.documentElement.clientHeight)
+        || document.body.clientHeight) - margin * 2;
+    var iframeHeight = ((bodyHeight / stackSize) | 0) - 6;
+
+    var styleNode = document.createElement('STYLE');
+    styleNode.appendChild(document.createTextNode(
+        'iframe { height: ' + iframeHeight + ' }'));
+    document.body.appendChild(styleNode);
+  }
+}
+
+window.onresize = fixupGeometry;
+</script>
+</body>
+</html>

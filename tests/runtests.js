@@ -21,8 +21,10 @@
 		testHeader.appendChild( document.createTextNode( testTitle ) );
 		document.body.appendChild( testHeader );
 		if ( typeof console !== "undefined" ) { console.group( k ); }
+		var t0 = new Date, t1;
 		try {
 			window[ k ]();
+			t1 = new Date;
 			testHeader.className = "pass";
 			if ( knownFailure ) {
 				if ( typeof console !== "undefined" ) {
@@ -30,6 +32,7 @@
 				}
 			}
 		} catch ( e ) {
+			t1 = new Date;
 			if ( !knownFailure ) {
 				passed = false;
 			}
@@ -39,6 +42,10 @@
 					e.toString() + "\n" + e.stack ) );
 			document.body.appendChild( pre );
 		}
+		var runtimeReport = document.createElement("small");
+		runtimeReport.appendChild(
+			document.createTextNode(" (took " + (t1 - t0) + "ms)"));
+		testHeader.appendChild(runtimeReport);
 		if ( typeof console !== "undefined" ) { console.groupEnd( k ); }
 	}
 

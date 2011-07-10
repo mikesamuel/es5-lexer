@@ -1,35 +1,35 @@
 function testIsLineTerminator() {
-  assertTrue(isLineTerminator("\n"));
-  assertTrue(isLineTerminator("\r\n"));
-  assertTrue(isLineTerminator("\r"));
-  assertTrue(isLineTerminator("\u2028"));
-  assertTrue(isLineTerminator("\u2029"));
-  assertTrue(isLineTerminator("/*\n*/"));
-  assertTrue(isLineTerminator("/*foo\n*/"));
-  assertTrue(isLineTerminator("/*foo\nbar\nbaz*/"));
-  assertFalse(isLineTerminator(" "));
-  assertFalse(isLineTerminator("\x85"));
-  assertFalse(isLineTerminator("\t"));
-  assertFalse(isLineTerminator("/*foo*/"));
-  assertFalse(isLineTerminator("'\\\n'"));
-  assertFalse(isLineTerminator("'foo\\\nbar'"));
-  assertFalse(isLineTerminator("/\\\n/"));
-  assertFalse(isLineTerminator("/\\\n/"));
-  assertFalse(isLineTerminator("\\\n"));
-  assertFalse(isLineTerminator(""));
-  assertFalse(isLineTerminator("42"));
+  assertTrue(es5Lexer.isLineTerminator("\n"));
+  assertTrue(es5Lexer.isLineTerminator("\r\n"));
+  assertTrue(es5Lexer.isLineTerminator("\r"));
+  assertTrue(es5Lexer.isLineTerminator("\u2028"));
+  assertTrue(es5Lexer.isLineTerminator("\u2029"));
+  assertTrue(es5Lexer.isLineTerminator("/*\n*/"));
+  assertTrue(es5Lexer.isLineTerminator("/*foo\n*/"));
+  assertTrue(es5Lexer.isLineTerminator("/*foo\nbar\nbaz*/"));
+  assertFalse(es5Lexer.isLineTerminator(" "));
+  assertFalse(es5Lexer.isLineTerminator("\x85"));
+  assertFalse(es5Lexer.isLineTerminator("\t"));
+  assertFalse(es5Lexer.isLineTerminator("/*foo*/"));
+  assertFalse(es5Lexer.isLineTerminator("'\\\n'"));
+  assertFalse(es5Lexer.isLineTerminator("'foo\\\nbar'"));
+  assertFalse(es5Lexer.isLineTerminator("/\\\n/"));
+  assertFalse(es5Lexer.isLineTerminator("/\\\n/"));
+  assertFalse(es5Lexer.isLineTerminator("\\\n"));
+  assertFalse(es5Lexer.isLineTerminator(""));
+  assertFalse(es5Lexer.isLineTerminator("42"));
 }
 
 function assertLexed(input, var_args_tokens) {
   var goldenTokens = [].slice.call(arguments, 1);
   var actualTokens = [];
-  var scanner = makeScanner(input);
+  var scanner = es5Lexer.makeScanner(input);
   var k = 0;
   for (var token; (token = scanner());) {
     actualTokens[k++] = token;
     // Include the types of the tokens if the golden includes it.
     if ("number" === typeof goldenTokens[k]) {
-      actualTokens[k++] = classifyToken(token);
+      actualTokens[k++] = es5Lexer.classifyToken(token);
     }
   }
   assertEquals(JSON.stringify(goldenTokens), JSON.stringify(actualTokens));
@@ -295,7 +295,7 @@ function testLexer2() {
 function assertNext(lexer, token, tokenType) {
   assertEquals(token, lexer());
   assertEquals("number", typeof tokenType);
-  assertEquals(tokenType, classifyToken(token));
+  assertEquals(tokenType, es5Lexer.classifyToken(token));
 }
 
 function assertEmpty(lexer) {
@@ -305,168 +305,171 @@ function assertEmpty(lexer) {
 function skipSpaces(lexer) {
   return function () {
     for (var token; (token = lexer());) {
-      if (classifyToken(token) !== TokenType.WHITE_SPACE) { return token; }
+      if (es5Lexer.classifyToken(token) !== es5Lexer.TokenType.WHITE_SPACE) {
+        return token;
+      }
     }
     return null;
   };
 }
 
 function testRegexLiterals() {
-  var lexer = skipSpaces(makeScanner("foo.replace(/[A-Z]/g, '#')"));
-  assertNext(lexer, "foo", TokenType.IDENTIFIER_NAME);
-  assertNext(lexer, ".", TokenType.PUNCTUATOR);
-  assertNext(lexer, "replace", TokenType.IDENTIFIER_NAME);
-  assertNext(lexer, "(", TokenType.PUNCTUATOR);
-  assertNext(lexer, "/[A-Z]/g", TokenType.REGEXP_LITERAL);
-  assertNext(lexer, ",", TokenType.PUNCTUATOR);
-  assertNext(lexer, "'#'", TokenType.STRING_LITERAL);
-  assertNext(lexer, ")", TokenType.PUNCTUATOR);
+  var lexer = skipSpaces(es5Lexer.makeScanner("foo.replace(/[A-Z]/g, '#')"));
+  assertNext(lexer, "foo", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, ".", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "replace", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, "(", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "/[A-Z]/g", es5Lexer.TokenType.REGEXP_LITERAL);
+  assertNext(lexer, ",", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "'#'", es5Lexer.TokenType.STRING_LITERAL);
+  assertNext(lexer, ")", es5Lexer.TokenType.PUNCTUATOR);
   assertEmpty(lexer);
 }
 
 function testSimpleExpression() {
-  var lexer = skipSpaces(makeScanner("while (foo) { 1; }"));
-  assertNext(lexer, "while", TokenType.IDENTIFIER_NAME);
-  assertNext(lexer, "(", TokenType.PUNCTUATOR);
-  assertNext(lexer, "foo", TokenType.IDENTIFIER_NAME);
-  assertNext(lexer, ")", TokenType.PUNCTUATOR);
-  assertNext(lexer, "{", TokenType.PUNCTUATOR);
-  assertNext(lexer, "1", TokenType.NUMERIC_LITERAL);
-  assertNext(lexer, ";", TokenType.PUNCTUATOR);
-  assertNext(lexer, "}", TokenType.PUNCTUATOR);
+  var lexer = skipSpaces(es5Lexer.makeScanner("while (foo) { 1; }"));
+  assertNext(lexer, "while", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, "(", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "foo", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, ")", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "{", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "1", es5Lexer.TokenType.NUMERIC_LITERAL);
+  assertNext(lexer, ";", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "}", es5Lexer.TokenType.PUNCTUATOR);
   assertEmpty(lexer);
 }
 
 function testNumberDotWord() {
-  var lexer = skipSpaces(makeScanner("0..toString()"));  // evaluates to "0"
-  assertNext(lexer, "0.", TokenType.NUMERIC_LITERAL);
-  assertNext(lexer, ".", TokenType.PUNCTUATOR);
-  assertNext(lexer, "toString", TokenType.IDENTIFIER_NAME);
-  assertNext(lexer, "(", TokenType.PUNCTUATOR);
-  assertNext(lexer, ")", TokenType.PUNCTUATOR);
+  // evaluates to "0"
+  var lexer = skipSpaces(es5Lexer.makeScanner("0..toString()"));
+  assertNext(lexer, "0.", es5Lexer.TokenType.NUMERIC_LITERAL);
+  assertNext(lexer, ".", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "toString", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, "(", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, ")", es5Lexer.TokenType.PUNCTUATOR);
   assertEmpty(lexer);
 }
 
 function testByteOrderMarkersAtBeginning() {
-  var lexer = skipSpaces(makeScanner("\uFEFFvar foo"));
-  assertNext(lexer, "var", TokenType.IDENTIFIER_NAME);
-  assertNext(lexer, "foo", TokenType.IDENTIFIER_NAME);
+  var lexer = skipSpaces(es5Lexer.makeScanner("\uFEFFvar foo"));
+  assertNext(lexer, "var", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, "foo", es5Lexer.TokenType.IDENTIFIER_NAME);
   assertEmpty(lexer);
 }
 
 function testByteOrderMarkersBetweenTokens() {
-  var lexer = skipSpaces(makeScanner("1.\uFEFF3"));
-  assertNext(lexer, "1.", TokenType.NUMERIC_LITERAL);
-  assertNext(lexer, "3", TokenType.NUMERIC_LITERAL);
+  var lexer = skipSpaces(es5Lexer.makeScanner("1.\uFEFF3"));
+  assertNext(lexer, "1.", es5Lexer.TokenType.NUMERIC_LITERAL);
+  assertNext(lexer, "3", es5Lexer.TokenType.NUMERIC_LITERAL);
   assertEmpty(lexer);
 }
 
 function testByteOrderMarkersInStrings() {
-  var lexer = skipSpaces(makeScanner("'\uFEFF'"));
-  assertNext(lexer, "'\uFEFF'", TokenType.STRING_LITERAL);
+  var lexer = skipSpaces(es5Lexer.makeScanner("'\uFEFF'"));
+  assertNext(lexer, "'\uFEFF'", es5Lexer.TokenType.STRING_LITERAL);
   assertEmpty(lexer);
 }
 
 function testEmphaticallyDecremented() {
-  var lexer = skipSpaces(makeScanner("i---j"));
-  assertNext(lexer, "i", TokenType.IDENTIFIER_NAME);
-  assertNext(lexer, "--", TokenType.PUNCTUATOR);
-  assertNext(lexer, "-", TokenType.PUNCTUATOR);
-  assertNext(lexer, "j", TokenType.IDENTIFIER_NAME);
+  var lexer = skipSpaces(es5Lexer.makeScanner("i---j"));
+  assertNext(lexer, "i", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, "--", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "-", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "j", es5Lexer.TokenType.IDENTIFIER_NAME);
   assertEmpty(lexer);
 }
 
 function testIsRegexpFollowingWord() {
   {
-    var lexer = skipSpaces(makeScanner("min / max /*/**/"));
-    assertNext(lexer, "min", TokenType.IDENTIFIER_NAME);
-    assertNext(lexer, "/", TokenType.PUNCTUATOR);
-    assertNext(lexer, "max", TokenType.IDENTIFIER_NAME);
-    assertNext(lexer, "/*/**/", TokenType.COMMENT);
+    var lexer = skipSpaces(es5Lexer.makeScanner("min / max /*/**/"));
+    assertNext(lexer, "min", es5Lexer.TokenType.IDENTIFIER_NAME);
+    assertNext(lexer, "/", es5Lexer.TokenType.PUNCTUATOR);
+    assertNext(lexer, "max", es5Lexer.TokenType.IDENTIFIER_NAME);
+    assertNext(lexer, "/*/**/", es5Lexer.TokenType.COMMENT);
     assertEmpty(lexer);
   }
   {
-    var lexer = skipSpaces(makeScanner("in / max /*/**/"));
-    assertNext(lexer, "in", TokenType.IDENTIFIER_NAME);
-    assertNext(lexer, "/ max /", TokenType.REGEXP_LITERAL);
-    assertNext(lexer, "*", TokenType.PUNCTUATOR);
-    assertNext(lexer, "/**/", TokenType.COMMENT);
+    var lexer = skipSpaces(es5Lexer.makeScanner("in / max /*/**/"));
+    assertNext(lexer, "in", es5Lexer.TokenType.IDENTIFIER_NAME);
+    assertNext(lexer, "/ max /", es5Lexer.TokenType.REGEXP_LITERAL);
+    assertNext(lexer, "*", es5Lexer.TokenType.PUNCTUATOR);
+    assertNext(lexer, "/**/", es5Lexer.TokenType.COMMENT);
     assertEmpty(lexer);
   }
 }
 
 function testRegexpFollowingVoid() {
-  var lexer = skipSpaces(makeScanner("void /./mi"));
-  assertNext(lexer, "void", TokenType.IDENTIFIER_NAME);
-  assertNext(lexer, "/./mi", TokenType.REGEXP_LITERAL);
+  var lexer = skipSpaces(es5Lexer.makeScanner("void /./mi"));
+  assertNext(lexer, "void", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, "/./mi", es5Lexer.TokenType.REGEXP_LITERAL);
   assertEmpty(lexer);
 }
 
 testRegexpFollowingPreincrement.knownFailure = true;
 function testRegexpFollowingPreincrement() {
-  var lexer = skipSpaces(makeScanner("x = ++/x/mi"));
-  assertNext(lexer, "x", TokenType.IDENTIFIER_NAME);
-  assertNext(lexer, "=", TokenType.PUNCTUATOR);
-  assertNext(lexer, "++", TokenType.PUNCTUATOR);
-  assertNext(lexer, "/x/mi", TokenType.REGEXP_LITERAL);
+  var lexer = skipSpaces(es5Lexer.makeScanner("x = ++/x/mi"));
+  assertNext(lexer, "x", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, "=", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "++", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "/x/mi", es5Lexer.TokenType.REGEXP_LITERAL);
   assertEmpty(lexer);
 }
 
 function testRegexpFollowingPostincrement() {
-  var lexer = skipSpaces(makeScanner("x++/y/m"));
-  assertNext(lexer, "x", TokenType.IDENTIFIER_NAME);
-  assertNext(lexer, "++", TokenType.PUNCTUATOR);
-  assertNext(lexer, "/", TokenType.PUNCTUATOR);
-  assertNext(lexer, "y", TokenType.IDENTIFIER_NAME);
-  assertNext(lexer, "/", TokenType.PUNCTUATOR);
-  assertNext(lexer, "m", TokenType.IDENTIFIER_NAME);
+  var lexer = skipSpaces(es5Lexer.makeScanner("x++/y/m"));
+  assertNext(lexer, "x", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, "++", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "/", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "y", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, "/", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "m", es5Lexer.TokenType.IDENTIFIER_NAME);
   assertEmpty(lexer);
 }
 
 function testUnicodeEscapesInIdentifier() {
   assertLexed(
     "var \\u0069\\u0066 = this !== thi\\u0073;",
-    "var", TokenType.IDENTIFIER_NAME,
-    " ", TokenType.WHITE_SPACE,
-    "\\u0069\\u0066", TokenType.IDENTIFIER_NAME,
-    " ", TokenType.WHITE_SPACE,
-    "=", TokenType.PUNCTUATOR,
-    " ", TokenType.WHITE_SPACE,
-    "this", TokenType.IDENTIFIER_NAME,
-    " ", TokenType.WHITE_SPACE,
-    "!==", TokenType.PUNCTUATOR,
-    " ", TokenType.WHITE_SPACE,
-    "thi\\u0073", TokenType.IDENTIFIER_NAME,
-    ";", TokenType.PUNCTUATOR);
+    "var", es5Lexer.TokenType.IDENTIFIER_NAME,
+    " ", es5Lexer.TokenType.WHITE_SPACE,
+    "\\u0069\\u0066", es5Lexer.TokenType.IDENTIFIER_NAME,
+    " ", es5Lexer.TokenType.WHITE_SPACE,
+    "=", es5Lexer.TokenType.PUNCTUATOR,
+    " ", es5Lexer.TokenType.WHITE_SPACE,
+    "this", es5Lexer.TokenType.IDENTIFIER_NAME,
+    " ", es5Lexer.TokenType.WHITE_SPACE,
+    "!==", es5Lexer.TokenType.PUNCTUATOR,
+    " ", es5Lexer.TokenType.WHITE_SPACE,
+    "thi\\u0073", es5Lexer.TokenType.IDENTIFIER_NAME,
+    ";", es5Lexer.TokenType.PUNCTUATOR);
   assertLexed(
     "ev\\u0061l('foo');",
-    "ev\\u0061l", TokenType.IDENTIFIER_NAME,
-    "(", TokenType.PUNCTUATOR,
-    "'foo'", TokenType.STRING_LITERAL,
-    ")", TokenType.PUNCTUATOR,
-    ";", TokenType.PUNCTUATOR);
+    "ev\\u0061l", es5Lexer.TokenType.IDENTIFIER_NAME,
+    "(", es5Lexer.TokenType.PUNCTUATOR,
+    "'foo'", es5Lexer.TokenType.STRING_LITERAL,
+    ")", es5Lexer.TokenType.PUNCTUATOR,
+    ";", es5Lexer.TokenType.PUNCTUATOR);
 
   assertLexed(
     "// e-accent v full-width-a l.\n"
     + "\\u00e9v\\uff41l('foo');",
 
-    "// e-accent v full-width-a l.", TokenType.COMMENT,
-    "\n", TokenType.LINE_TERMINATOR_SEQUENCE,
-    "\\u00e9v\\uff41l", TokenType.IDENTIFIER_NAME,
-    "(", TokenType.PUNCTUATOR,
-    "'foo'", TokenType.STRING_LITERAL,
-    ")", TokenType.PUNCTUATOR,
-    ";", TokenType.PUNCTUATOR);
+    "// e-accent v full-width-a l.", es5Lexer.TokenType.COMMENT,
+    "\n", es5Lexer.TokenType.LINE_TERMINATOR_SEQUENCE,
+    "\\u00e9v\\uff41l", es5Lexer.TokenType.IDENTIFIER_NAME,
+    "(", es5Lexer.TokenType.PUNCTUATOR,
+    "'foo'", es5Lexer.TokenType.STRING_LITERAL,
+    ")", es5Lexer.TokenType.PUNCTUATOR,
+    ";", es5Lexer.TokenType.PUNCTUATOR);
 }
 
 function assertFailsToLex(source, position) {
   var k = 0;
-  var scanner = makeScanner(source);
+  var scanner = es5Lexer.makeScanner(source);
   var tokens = [];
   try {
     for (var tok; (tok = scanner());) {
       k += tok.length;
-      tokens.push(tok, classifyToken(tok));
+      tokens.push(tok, es5Lexer.classifyToken(tok));
     }
   } catch (ex) {
     assertEquals(position, k);
@@ -535,7 +538,8 @@ function testBadIdentifiers() {
     var hex = cc.toString(16);
     var escapedIdent = "\\u0000".substring(0, 6 - hex.length) + hex;
     if (/[A-Za-z_$]/.test(ch)) {
-      assertLexed(escapedIdent, escapedIdent, TokenType.IDENTIFIER_NAME);
+      assertLexed(
+        escapedIdent, escapedIdent, es5Lexer.TokenType.IDENTIFIER_NAME);
     } else {
       assertFailsToLex(escapedIdent, 0);
     }
@@ -552,57 +556,73 @@ function testIdentifiersAdjacentToNumbers() {
 function testLanguageDelimiters() {
   assertLexed(
     "var w = /<script>/;", "var", " ", "w", " ", "=", " ",
-    "/<script>/", TokenType.REGEXP_LITERAL, ";");
+    "/<script>/", es5Lexer.TokenType.REGEXP_LITERAL, ";");
   assertLexed(
     "var x = a </script>/;",
+
     "var", " ", "x", " ", "=", " ", "a", " ",
-    "<", TokenType.PUNCTUATOR, "/script>/", TokenType.REGEXP_LITERAL, ";");
+    "<", es5Lexer.TokenType.PUNCTUATOR,
+    "/script>/", es5Lexer.TokenType.REGEXP_LITERAL, ";");
   assertLexed(
     "[[0]]>1",
-    "[", TokenType.PUNCTUATOR, "[", "0", "]", TokenType.PUNCTUATOR, "]",
-    ">", TokenType.PUNCTUATOR, "1");
+
+    "[", es5Lexer.TokenType.PUNCTUATOR, "[", "0",
+    "]", es5Lexer.TokenType.PUNCTUATOR, "]",
+    ">", es5Lexer.TokenType.PUNCTUATOR, "1");
   assertLexed(
-    "/[\\]]>/", "/[\\]]>/", TokenType.REGEXP_LITERAL);
+    "/[\\]]>/", "/[\\]]>/", es5Lexer.TokenType.REGEXP_LITERAL);
   assertLexed(
     "var p = a <!-- b && c --> (d);",
     "var", " ", "p", " ", "=", " ", "a", " ",
-    "<", TokenType.PUNCTUATOR, "!", TokenType.PUNCTUATOR,
-    "--", TokenType.PUNCTUATOR,
-    " ", "b", " ", "&&", TokenType.PUNCTUATOR, " ", "c", " ",
-    "--", TokenType.PUNCTUATOR, ">", TokenType.PUNCTUATOR,
+    "<", es5Lexer.TokenType.PUNCTUATOR, "!", es5Lexer.TokenType.PUNCTUATOR,
+    "--", es5Lexer.TokenType.PUNCTUATOR,
+    " ", "b", " ", "&&", es5Lexer.TokenType.PUNCTUATOR, " ", "c", " ",
+    "--", es5Lexer.TokenType.PUNCTUATOR, ">", es5Lexer.TokenType.PUNCTUATOR,
     " ", "(", "d", ")", ";");
 }
 
 function testNumbers() {
   assertLexed(
     "[1,00,0x2A,0.12345678901234567890123456789e30,1E5,.5,.5e-2,0X2a]",
-    "[", TokenType.PUNCTUATOR,
-    "1", TokenType.NUMERIC_LITERAL,
-    ",", TokenType.PUNCTUATOR,
-    "00", TokenType.NUMERIC_LITERAL,
-    ",", TokenType.PUNCTUATOR,
-    "0x2A", TokenType.NUMERIC_LITERAL,
-    ",", TokenType.PUNCTUATOR,
-    "0.12345678901234567890123456789e30", TokenType.NUMERIC_LITERAL,
-    ",", TokenType.PUNCTUATOR,
-    "1E5", TokenType.NUMERIC_LITERAL,
-    ",", TokenType.PUNCTUATOR,
-    ".5", TokenType.NUMERIC_LITERAL,
-    ",", TokenType.PUNCTUATOR,
-    ".5e-2", TokenType.NUMERIC_LITERAL,
-    ",", TokenType.PUNCTUATOR,
-    "0X2a", TokenType.NUMERIC_LITERAL,
-    "]", TokenType.PUNCTUATOR);
+    "[", es5Lexer.TokenType.PUNCTUATOR,
+    "1", es5Lexer.TokenType.NUMERIC_LITERAL,
+    ",", es5Lexer.TokenType.PUNCTUATOR,
+    "00", es5Lexer.TokenType.NUMERIC_LITERAL,
+    ",", es5Lexer.TokenType.PUNCTUATOR,
+    "0x2A", es5Lexer.TokenType.NUMERIC_LITERAL,
+    ",", es5Lexer.TokenType.PUNCTUATOR,
+    "0.12345678901234567890123456789e30", es5Lexer.TokenType.NUMERIC_LITERAL,
+    ",", es5Lexer.TokenType.PUNCTUATOR,
+    "1E5", es5Lexer.TokenType.NUMERIC_LITERAL,
+    ",", es5Lexer.TokenType.PUNCTUATOR,
+    ".5", es5Lexer.TokenType.NUMERIC_LITERAL,
+    ",", es5Lexer.TokenType.PUNCTUATOR,
+    ".5e-2", es5Lexer.TokenType.NUMERIC_LITERAL,
+    ",", es5Lexer.TokenType.PUNCTUATOR,
+    "0X2a", es5Lexer.TokenType.NUMERIC_LITERAL,
+    "]", es5Lexer.TokenType.PUNCTUATOR);
 }
 
 function testTokenTypesDisjoint() {
-  assertFalse(TokenType.COMMENT === TokenType.WHITE_SPACE);
-  assertFalse(TokenType.LINE_TERMINATOR_SEQUENCE === TokenType.WHITE_SPACE);
-  assertFalse(TokenType.LINE_TERMINATOR_SEQUENCE === TokenType.STRING_LITERAL);
-  assertFalse(TokenType.NUMERIC_LITERAL === TokenType.STRING_LITERAL);
-  assertFalse(TokenType.NUMERIC_LITERAL === TokenType.REGEXP_LITERAL);
-  assertFalse(TokenType.PUNCTUATOR === TokenType.REGEXP_LITERAL);
-  assertFalse(TokenType.PUNCTUATOR === TokenType.IDENTIFIER_NAME);
+  assertFalse(es5Lexer.TokenType.COMMENT === es5Lexer.TokenType.WHITE_SPACE);
+  assertFalse(
+    es5Lexer.TokenType.LINE_TERMINATOR_SEQUENCE
+    === es5Lexer.TokenType.WHITE_SPACE);
+  assertFalse(
+    es5Lexer.TokenType.LINE_TERMINATOR_SEQUENCE
+    === es5Lexer.TokenType.STRING_LITERAL);
+  assertFalse(
+    es5Lexer.TokenType.NUMERIC_LITERAL
+    === es5Lexer.TokenType.STRING_LITERAL);
+  assertFalse(
+    es5Lexer.TokenType.NUMERIC_LITERAL
+    === es5Lexer.TokenType.REGEXP_LITERAL);
+  assertFalse(
+    es5Lexer.TokenType.PUNCTUATOR
+    === es5Lexer.TokenType.REGEXP_LITERAL);
+  assertFalse(
+    es5Lexer.TokenType.PUNCTUATOR
+    === es5Lexer.TokenType.IDENTIFIER_NAME);
 }
 
 testUnnormalizeIdentifiers.knownFailure = true;
@@ -612,14 +632,14 @@ function testUnnormalizeIdentifiers() {
   // composition)."
 
   // Normalized.
-  assertLexed("\u00C7", "\u00C7", TokenType.IDENTIFIER_NAME);
+  assertLexed("\u00C7", "\u00C7", es5Lexer.TokenType.IDENTIFIER_NAME);
   // Escaped & normalized.
-  assertLexed("\\u00C7", "\\u00C7", TokenType.IDENTIFIER_NAME);
+  assertLexed("\\u00C7", "\\u00C7", es5Lexer.TokenType.IDENTIFIER_NAME);
   // Not normalized.
   // TODO: Should we normalize the source input on read?
-  assertLexed("C\u0327", "\u00C7", TokenType.IDENTIFIER_NAME);
+  assertLexed("C\u0327", "\u00C7", es5Lexer.TokenType.IDENTIFIER_NAME);
   // Escaped but not normalized.
-  assertLexed("C\\u0327", "\u00C7", TokenType.IDENTIFIER_NAME);
+  assertLexed("C\\u0327", "\u00C7", es5Lexer.TokenType.IDENTIFIER_NAME);
 }
 
 testInvalidRegexpFlags.knownFailure = true;
@@ -648,19 +668,19 @@ function testNonLatinSpacesAndIdentifierParts() {
   assertLexed(
     "foo" + "\u200C" + "bar" + "\u200A" + "baz" + "\u20E1" + "boo" + "\u2028",
 
-    "foo\u200Cbar", TokenType.IDENTIFIER_NAME,
-    "\u200A", TokenType.WHITE_SPACE,
-    "baz\u20E1boo", TokenType.IDENTIFIER_NAME,
-    "\u2028", TokenType.LINE_TERMINATOR_SEQUENCE);
+    "foo\u200Cbar", es5Lexer.TokenType.IDENTIFIER_NAME,
+    "\u200A", es5Lexer.TokenType.WHITE_SPACE,
+    "baz\u20E1boo", es5Lexer.TokenType.IDENTIFIER_NAME,
+    "\u2028", es5Lexer.TokenType.LINE_TERMINATOR_SEQUENCE);
 
   // The connectors in identifiers can be escaped.
   assertLexed(
     "foo" + "\\u200C" + "bar" + "\u200A" + "baz" + "\\u20E1" + "boo" + "\u2028",
 
-    "foo\\u200Cbar", TokenType.IDENTIFIER_NAME,
-    "\u200A", TokenType.WHITE_SPACE,
-    "baz\\u20E1boo", TokenType.IDENTIFIER_NAME,
-    "\u2028", TokenType.LINE_TERMINATOR_SEQUENCE);
+    "foo\\u200Cbar", es5Lexer.TokenType.IDENTIFIER_NAME,
+    "\u200A", es5Lexer.TokenType.WHITE_SPACE,
+    "baz\\u20E1boo", es5Lexer.TokenType.IDENTIFIER_NAME,
+    "\u2028", es5Lexer.TokenType.LINE_TERMINATOR_SEQUENCE);
 
   // But spaces and line terminators cannot be.
   assertFailsToLex(

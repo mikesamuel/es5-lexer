@@ -1,5 +1,6 @@
 function assertDisambiguated(golden, source) {
-  var tokenStream = disambiguateTokenStream(makeScanner(source));
+  var tokenStream = es5Lexer.disambiguateTokenStream(
+    es5Lexer.makeScanner(source));
   var tokens = [];
   for (var token; (token = tokenStream());) {
     tokens.push(token);
@@ -64,7 +65,8 @@ function testAmbiguousThis() {
 function assertEvalToSameDisambiguated(expr) {
   if (!/return/.test(expr)) { expr = "return " + expr; }
 
-  var tokenStream = disambiguateTokenStream(makeScanner(expr));
+  var tokenStream = es5Lexer.disambiguateTokenStream(
+    es5Lexer.makeScanner(expr));
   var tokens = [];
   for (var token; (token = tokenStream());) {
     tokens.push(token);
