@@ -35,13 +35,13 @@ function guessNextIsRegexp(preceder) {
 
   var precederLen = preceder.length;
   var lastChar = preceder.charAt(precederLen - 1);
-  switch (lastChar) {
-  case '+':  // Match + but not ++.
-  case '-':  // Match - but not --.
-  case '.':  // Match . but not a number with a trailing decimal.
-  case '/':  // Match /, but not a regexp.
+  if (lastChar === "+"  // Match + but not ++.
+      || lastChar === "-"  // Match - but not --.
+      || lastChar === "."  // Match . but not a number with a trailing decimal.
+      || lastChar === "/"  // Match /, but not a regexp.
+     ) {
     return precederLen === 1;
-  default:
+  } else {
     // [:-?] matches ':', ';', '<', '=', '>', '?'
     // [{-~] matches '{', '|', '}', '~'
     return /^(?:break|case|continue|delete|do|else|finally|in|instanceof|return|throw|try|typeof|void)\b$|[%&(*,:-?\[^{-~]$/.test(preceder);
