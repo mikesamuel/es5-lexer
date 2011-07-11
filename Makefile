@@ -46,7 +46,7 @@ build/tokens.js: src/tokens.js
 	  -e "load('$^');" \
 	  -e "print('var ES5_TOKEN=' + uneval(ES5_TOKEN) + ',');" \
 	  -e "print('ES5_IGNORABLE_TOKEN_PREFIX=' \
-	      + uneval(ES5_IGNORABLE_TOKEN_PREFIX)) + ';'" >> "$@"
+	      + uneval(ES5_IGNORABLE_TOKEN_PREFIX) + ';');" >> "$@"
 
 # Run Rhino to lex and disambiguate the compiled output.
 build/dogfood_test_bundle.js: build/es5_lexer_compiled.js
