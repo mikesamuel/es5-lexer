@@ -697,4 +697,9 @@ function testNonLatinSpacesAndIdentifierParts() {
   // regardless.
   assertFailsToLex("\\u200C" + "bar", 0);
   assertFailsToLex("\\u20E1" + "boo", 0);
+
+  // The 'u' is not case-insensitive.
+  assertFailsToLex(
+    "foo" + "\\U200C" + "bar" + "\Y200A" + "baz" + "\\U20E1" + "boo" + "\U2028",
+    3);
 }

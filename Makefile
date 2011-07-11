@@ -14,7 +14,7 @@ CLOSURE_COMPILER=java -jar tools/closure/compiler.jar \
    --compilation_level ADVANCED_OPTIMIZATIONS \
    --language_in ECMASCRIPT5
 
-all: build/es5_lexer_compiled.js
+all: build/es5_lexer_compiled.js build/dogfood_test_bundle.js
 
 clean:
 	rm -rf build
@@ -34,6 +34,7 @@ build/es5_lexer_compiled.js: $(JS_SOURCES)
 build/%.js: src/%.js
 	@cp "$^" "$@"
 
+# Run Rhino to precompute token RegExps which saves about 600ms at boot.
 build/tokens.js: src/tokens.js
 	@mkdir -p build
 	@echo Running $^ in Rhino to produce $@
@@ -46,3 +47,18 @@ build/tokens.js: src/tokens.js
 	  -e "print('var ES5_TOKEN=' + uneval(ES5_TOKEN) + ',');" \
 	  -e "print('ES5_IGNORABLE_TOKEN_PREFIX=' \
 	      + uneval(ES5_IGNORABLE_TOKEN_PREFIX)) + ';'" >> "$@"
+
+# Run Rhino to lex and disambiguate the compiled output.
+build/dogfood_test_bundle.js: build/es5_lexer_compiled.js
+	@echo Running Rhino to disambiguate the built version as a benchmark.
+	@$(RHINO) -e "load('$^');" \
+	  -e "var tokenStream = es5Lexer.disambiguateTokenStream( \
+	        es5Lexer.makeScanner(readFile('$^', 'UTF-8')));" \
+	  -e "var dogfood = [];" \
+	  -e "for (var token; (token = tokenStream());) \
+	        dogfood.push(token);" \
+	  -e "print(dogfood.join(''));" \
+	  > "$@"
+	@echo Disambiguated version is \
+	  $$(( $$(cat "$@" | wc -c) * 100 / $$(cat "$^" | wc -c) ))"%" \
+	  of the size of the original.
