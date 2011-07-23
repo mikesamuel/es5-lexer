@@ -9,7 +9,7 @@
  * Defines a scanner for EcmaScript 5 as a function that given a string of
  * EcmaScript 5 source returns a function that when called returns a single
  * token or null when the source is exhausted.
- * 
+ *
  * <p>
  * This scanner uses a heuristic to resolve ambiguity in the EcmaScript 5
  * lexical grammar.
@@ -18,11 +18,11 @@
  *
  * <p>
  * The concatenation of the outputs is the input.
- * 
+ *
  * <p>
  * If the input string is a valid Program/Expression, then the concatenation
  * of the output strings is a valid Program/Expression.
- * 
+ *
  * <p>
  * Throws an Error if there is no valid next token.
  */
@@ -30,7 +30,6 @@ function makeScanner(source) {
   var src = source;
   // Last non-comment, non-whitespace token.
   var lastNonIgnorable;
-  var fail;  // Purposefully never initialized.
 
   return function () {
     var match, token;
@@ -46,7 +45,7 @@ function makeScanner(source) {
                   !lastNonIgnorable || guessNextIsRegexp(lastNonIgnorable)
                     ? ES5_REGEXP_LITERAL_TOKEN
                     : ES5_DIV_OP_TOKEN),
-              
+
               // The below will cause this to fail with an error if there is
               // no token at the front of the input.
               token = match[0],

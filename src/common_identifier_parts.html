@@ -1,0 +1,63 @@
+<html>
+<title>Empirically test identifier codepoints</title>
+<body><script>
+// Can be run in the squarefree shell to emprically determine the set of
+// codepoints that can appear at the beginning and tail of an IdentifierName.
+// The output is a variable assignment that can be copied and pasted into this
+// file to allow the intersection of the sets allowed by multiple interpreters.
+// Putting the resulting definitions in tokens_empirical.js will incorporate
+// them into the built bundle in place of the ES5 definition based on
+// Unicode 5 character classes.
+
+function emit(s) {
+  var el = document.createElement("PRE");
+  el.style.whiteSpace = "pre-wrap";
+  el.appendChild(document.createTextNode(s));
+  document.body.appendChild(el);
+}
+
+var startCandidates = [[0, 0x10000]];
+var partCandidates = [[0, 0x10000]];
+
+var starts = [];
+for (var j = 0, n = startCandidates.length, last = -Infinity; j < n; ++j) {
+  var range = startCandidates[j];
+  for (var i = range[0], end = range[1]; i <= end; ++i) {
+    try {
+      var s = String.fromCharCode(i);
+      if (new Function(s, "return " + s)(42) === 42) {
+        if (!starts.length || i !== last + 1) {
+          starts.push([i, i]);
+        } else {
+          starts[starts.length - 1][1] = i;
+        }
+        last = i;
+      }
+    } catch (ex) {
+    }
+  }
+}
+
+emit("startCandidates=" + JSON.stringify(starts) + ";");
+
+var parts = [];
+for (var j = 0, n = partCandidates.length, last = -Infinity; j < n; ++j) {
+  var range = partCandidates[j];
+  for (var i = range[0], end = range[1]; i <= end; ++i) {
+    try {
+      var s = "x" + String.fromCharCode(i);
+      if (new Function(s, "x = 0; return " + s)(42) === 42) {
+        if (!parts.length || i !== last + 1) {
+          parts.push([i, i]);
+        } else {
+          parts[parts.length - 1][1] = i;
+        }
+        last = i;
+      }
+    } catch (ex) {
+    }
+  }
+}
+
+emit("partCandidates=" + JSON.stringify(parts) + ";");
+</script></body></html>

@@ -663,43 +663,43 @@ function testInvalidRegexpFlags() {
 
 function testNonLatinSpacesAndIdentifierParts() {
   // U+200A is a space character,
-  // U+200C is a joiner,
+  // U+2040 is a connector,
   // U+20E1 is a combining mark, and
   // U+2028 is a line terminator character.
   assertLexed(
-    "foo" + "\u200C" + "bar" + "\u200A" + "baz" + "\u20E1" + "boo" + "\u2028",
+    "foo" + "\u2040" + "bar" + "\u200A" + "baz" + "\u20E1" + "boo" + "\u2028",
 
-    "foo\u200Cbar", es5Lexer.TokenType.IDENTIFIER_NAME,
+    "foo\u2040bar", es5Lexer.TokenType.IDENTIFIER_NAME,
     "\u200A", es5Lexer.TokenType.WHITE_SPACE,
     "baz\u20E1boo", es5Lexer.TokenType.IDENTIFIER_NAME,
     "\u2028", es5Lexer.TokenType.LINE_TERMINATOR_SEQUENCE);
 
   // The connectors in identifiers can be escaped.
   assertLexed(
-    "foo" + "\\u200C" + "bar" + "\u200A" + "baz" + "\\u20E1" + "boo" + "\u2028",
+    "foo" + "\\u2040" + "bar" + "\u200A" + "baz" + "\\u20E1" + "boo" + "\u2028",
 
-    "foo\\u200Cbar", es5Lexer.TokenType.IDENTIFIER_NAME,
+    "foo\\u2040bar", es5Lexer.TokenType.IDENTIFIER_NAME,
     "\u200A", es5Lexer.TokenType.WHITE_SPACE,
     "baz\\u20E1boo", es5Lexer.TokenType.IDENTIFIER_NAME,
     "\u2028", es5Lexer.TokenType.LINE_TERMINATOR_SEQUENCE);
 
   // But spaces and line terminators cannot be.
   assertFailsToLex(
-    "foo" + "\\u200C" + "bar" + "\\u200A"
+    "foo" + "\\u2040" + "bar" + "\\u200A"
     + "baz" + "\\u20E1" + "boo" + "\u2028",
     12);
   assertFailsToLex(
-    "foo" + "\\u200C" + "bar" + "\u200A"
+    "foo" + "\\u2040" + "bar" + "\u200A"
     + "baz" + "\\u20E1" + "boo" + "\\u2028",
     25);
   
   // Combining marks cannot appear at the front of an identifier name
   // regardless.
-  assertFailsToLex("\\u200C" + "bar", 0);
+  assertFailsToLex("\\u2040" + "bar", 0);
   assertFailsToLex("\\u20E1" + "boo", 0);
 
   // The 'u' is not case-insensitive.
   assertFailsToLex(
-    "foo" + "\\U200C" + "bar" + "\Y200A" + "baz" + "\\U20E1" + "boo" + "\U2028",
+    "foo" + "\\U2040" + "bar" + "\Y200A" + "baz" + "\\U20E1" + "boo" + "\U2028",
     3);
 }

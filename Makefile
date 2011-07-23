@@ -32,10 +32,11 @@ build/es5_lexer_compiled.js: $(JS_SOURCES)
 	@wc -c "$@" "$(TEMP)"/gzipped
 
 build/%.js: src/%.js
+	@mkdir -p build
 	@cp "$^" "$@"
 
 # Run Rhino to precompute token RegExps which saves about 600ms at boot.
-build/tokens.js: src/tokens.js
+build/tokens.js: src/tokens_empirical.js src/tokens.js
 	@mkdir -p build
 	@echo Running $^ in Rhino to produce $@
 	@echo '/**' > "$@"
@@ -43,7 +44,8 @@ build/tokens.js: src/tokens.js
 	  >> "$@"
 	@echo ' */' >> "$@"
 	@$(RHINO) -w -strict -fatal-warnings \
-	  -e "load('$^');" \
+	  -e "load('src/tokens_empirical.js');" \
+	  -e "load('src/tokens.js');" \
 	  -e "print('var ES5_TOKEN=' + uneval(ES5_TOKEN) + ',');" \
 	  -e "print('ES5_IGNORABLE_TOKEN_PREFIX=' \
 	      + uneval(ES5_IGNORABLE_TOKEN_PREFIX) + ';');" >> "$@"
