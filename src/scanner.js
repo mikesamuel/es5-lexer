@@ -46,6 +46,9 @@ function makeScanner(source) {
                     ? ES5_REGEXP_LITERAL_TOKEN
                     : ES5_DIV_OP_TOKEN),
 
+              // Throw an error that contains the problematic source.
+              //match || (null)[src],
+
               // The below will cause this to fail with an error if there is
               // no token at the front of the input.
               token = match[0],
@@ -153,12 +156,12 @@ var ES5_REGEXP_LITERAL_TOKEN = new RegExp(
       + "(?:"  // and contains at least one of
         // chars except charset ends, escape sequences, line terminators
         + "[^\\]\\\\\\r\\n\\u2028\\u2029]"
-        // or an escape sequence of line continuation
-        + "|\\\\(?:\\r\\n?|[^\\rux]|u[0-9A-Fa-f]{4}|x[0-9A-Fa-f]{2})"
+        // or an escape sequence.  Line continuations are not allowed in regexs.
+        + "|\\\\(?:[^\\r\\n\\u2028\\u2029ux]|u[0-9A-Fa-f]{4}|x[0-9A-Fa-f]{2})"
       + ")+"
     + "\\]"  // finished by a ']'
-    // or an escape sequence or line terminator
-    + "|\\\\(?:\\r\\n?|[^\\rux]|u[0-9A-Fa-f]{4}|x[0-9A-Fa-f]{2})"
+    // or an escape sequence.
+    + "|\\\\(?:[^\\r\\n\\u2028\\u2029ux]|u[0-9A-Fa-f]{4}|x[0-9A-Fa-f]{2})"
   + ")*"
   // finished by a '/'
   + "\\/"

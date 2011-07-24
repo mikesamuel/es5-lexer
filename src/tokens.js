@@ -228,7 +228,7 @@ function () {
    */
   function charsetAndTrieFromCharsetsAndEscapes(ranges) {
     var HAS_OWN_PROPERTY = Object.hasOwnProperty;
-    
+
     function collapseRanges(ranges) {
       // Sort ranges by first index so we can collapse overlapping ranges in a
       // single forward pass.
@@ -310,7 +310,7 @@ function () {
      *    a-b
      * nor invalid identifiers whose invalid parts are escaped
      *    a\u002Db
-     * 
+     *
      * The output form of the trie is an object mapping character codes to
      * tries.  The only terminal state is an empty object, so if both a string
      * and its prefix is added to the trie, information that the prefix was

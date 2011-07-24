@@ -275,7 +275,7 @@ function testLexer2() {
 
       "a", ".", "year", ",", "a", ".", "month", ",", "a", ".", "date", ",", "0",
       ",", "0", ",", "0", ")", ";", "c", "=", "new", " ", "t", "(", "a", ")",
-      "}", "var", " ", "d", "=", "[", "]", ";", "var", " ", "e", ";", "for", 
+      "}", "var", " ", "d", "=", "[", "]", ";", "var", " ", "e", ";", "for",
       "(", "var", " ", "f", "=", "0", ";",
 
       "f", "<", "48", ";", "++", "f", ")", "{", "e", "=", "of", "(", "c", ".",
@@ -284,7 +284,7 @@ function testLexer2() {
 
       "if", "(", "f", "==", "1", ")", "{", "e", "+=", "\" (30 minutes)\"", "}",
       "else", "{",
-      
+
       "e", "+=", "\" (\"", "+", "f", "/", "2", "+", "\" hour\"", ";", "e", "+=",
       "f", "==", "2", "?", "\")\"", ":", "\"s)\"", "}", "}", "d", ".", "push",
       "(", "e", ")", ";", "c", ".", "advance", "(",
@@ -412,6 +412,41 @@ function testRegexpFollowingPreincrement() {
   assertNext(lexer, "=", es5Lexer.TokenType.PUNCTUATOR);
   assertNext(lexer, "++", es5Lexer.TokenType.PUNCTUATOR);
   assertNext(lexer, "/x/mi", es5Lexer.TokenType.REGEXP_LITERAL);
+  assertEmpty(lexer);
+}
+
+function testRegexpFollowingBlock() {
+  var lexer = skipSpaces(es5Lexer.makeScanner("{ x(); }\n/foo/.test(y)"));
+  assertNext(lexer, "{", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "x", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, "(", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, ")", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, ";", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "}", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "\n", es5Lexer.TokenType.LINE_TERMINATOR_SEQUENCE);
+  assertNext(lexer, "/foo/", es5Lexer.TokenType.REGEXP_LITERAL);
+  assertNext(lexer, ".", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "test", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, "(", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "y", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, ")", es5Lexer.TokenType.PUNCTUATOR);
+  assertEmpty(lexer);
+}
+
+testDivisionFollowingObjectLiteral.knownFailure = true;
+function testDivisionFollowingObjectLiteral() {
+  var lexer = skipSpaces(es5Lexer.makeScanner("({ x: y }\n/foo/i)"));
+  assertNext(lexer, "(", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "{", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "x", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, ":", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "y", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, "}", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "/", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "foo", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, "/", es5Lexer.TokenType.PUNCTUATOR);
+  assertNext(lexer, "i", es5Lexer.TokenType.IDENTIFIER_NAME);
+  assertNext(lexer, ")", es5Lexer.TokenType.PUNCTUATOR);
   assertEmpty(lexer);
 }
 
@@ -650,7 +685,8 @@ function testInvalidRegexpFlags() {
   // But IdentifierPart is a huge complex production so instead we defined
   // RegularExpressionFlags based on the actual characters allowed
   // ('i', 'g', 'm')
-  // This scanner could do a better 
+  // This scanner could do a better job with syntactically invalid flag
+  // sequences.
   assertLexed("/foo/instanceof RegExp", "/foo/instanceof", " ", "RegExp");
   // Not actually a valid program but almost.
   assertLexed(
@@ -692,7 +728,7 @@ function testNonLatinSpacesAndIdentifierParts() {
     "foo" + "\\u2040" + "bar" + "\u200A"
     + "baz" + "\\u20E1" + "boo" + "\\u2028",
     25);
-  
+
   // Combining marks cannot appear at the front of an identifier name
   // regardless.
   assertFailsToLex("\\u2040" + "bar", 0);
