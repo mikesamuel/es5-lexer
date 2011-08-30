@@ -37,6 +37,19 @@ function testNoCommentIntroduced() {
     "a = (/foo//bar)");
 }
 
+function testCloseParenBeforeRegexp() {
+  assertDisambiguated(
+    // This is a known failure, but fails in a safe way.
+    "if (c) *1/x*1/i.test(s) && f()",
+    // An if statement that leaves a close parenthesis before the regexp.
+    "if (c) /x/i.test(s) && f()");
+  assertDisambiguated(
+    // This is strangely correct.
+    "x.if (c) *1/x*1/i.test(s) && f()",
+    // A method call involved in a division.
+    "x.if (c) /x/i.test(s) && f()");
+}
+
 function testProblematicRegex() {
   assertDisambiguated(
     "a = /./.constructor(\"foo\\\\\\\"[/]\",\"\")",
