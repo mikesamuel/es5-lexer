@@ -30,6 +30,8 @@ var REGEXP_PRECEDER_TOKEN_RE = new RegExp(
     + "|,"    // Second binary operand cannot start a division.
     + "|[*]"  // Ditto binary operand.
   + ")$"
+  // Or match empty string
+  + "|^$"
   // Or match a token that ends with one of the characters below to match
   // a variety of punctuation tokens.
   // Some of the single char tokens could go above, but putting them below
